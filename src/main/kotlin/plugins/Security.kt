@@ -1,5 +1,6 @@
 package com.saban.plugins
 
+import com.saban.plugins.plugins.DbSessionStorage
 import com.saban.user.model.UserModel
 import com.saban.user.repository.UserRepository
 import com.saban.user.service.AuthenticationService
@@ -20,7 +21,7 @@ fun Application.configureSecurity() {
 
     install(Sessions) {
         val secretSignKey = hex("6819b57a326945c1968f45236589")
-        cookie<UserSession>("user_session", directorySessionStorage(File("build/.sessions"))) {
+        cookie<UserSession>("user_session", DbSessionStorage()) {
             transform(SessionTransportTransformerMessageAuthentication(secretSignKey))
             cookie.path = "/"
             cookie.maxAgeInSeconds = 7.days.inWholeSeconds
