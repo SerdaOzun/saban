@@ -101,7 +101,7 @@
 <Card.Root class="w-[350px]">
 	<Card.Header>
 		<Card.Title>Record Audio</Card.Title>
-		<Card.Description>Choose word and language</Card.Description>
+		<Card.Description>Choose word or phrase and language</Card.Description>
 	</Card.Header>
 	<Card.Content>
 		<form>
@@ -137,16 +137,14 @@
 			</div>
 		</form>
 	</Card.Content>
-	<Card.Footer class="flex flex-col items-start gap-2">
+	<Card.Footer class="flex flex-col gap-2">
 		{#if serverResponse}
-			<Label>{serverResponse}</Label>
+			<Label class="self-center">{serverResponse}</Label>
 		{/if}
 		<Button
-			onclick={uploadAudio}
+			onclick={uploadAudio} class="self-end"
 			disabled={selectedLanguage === null || word === '' || word === null || audioBlob == null}
-			>send
+			>Send
 		</Button>
 	</Card.Footer>
 </Card.Root>
-
-<main class="flex flex-row items-center gap-4 p-4"></main>
