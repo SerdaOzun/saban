@@ -47,7 +47,7 @@ class TsVectorColumnType : ColumnType<String>(nullable = true) {
 class TsQueryOp(val tsVectorColumn: Expression<String>, val query: String) : Op<Boolean>() {
     override fun toQueryBuilder(queryBuilder: QueryBuilder) {
         queryBuilder.append(tsVectorColumn)
-        queryBuilder.append(" @@ to_tsquery('simple', ")
+        queryBuilder.append(" @@ to_tsquery('simple_unaccent', ")
         queryBuilder.append(stringLiteral(sanitizeQuery(query))) // Ensures proper escaping of the query string
         queryBuilder.append(")")
     }
@@ -56,20 +56,4 @@ class TsQueryOp(val tsVectorColumn: Expression<String>, val query: String) : Op<
 fun sanitizeQuery(query: String): String {
     // Replace spaces with '&' for logical AND (to match all terms)
     return query.trim().replace(Regex("\\s+"), " & ")
-}
-
-class CustomTsRankFunction(
-    private val tsVectorColumn: Column<String>,
-    private val query: String
-) : ExpressionWithColumnType<Double>() {
-    override fun toQueryBuilder(queryBuilder: QueryBuilder) {
-        queryBuilder.append("ts_rank(")
-        queryBuilder.append(tsVectorColumn)
-        queryBuilder.append(", to_tsquery('simple', ")
-        queryBuilder.append(stringLiteral(sanitizeQuery(query))) // Ensures proper escaping
-        queryBuilder.append("))")
-    }
-
-    override val columnType: IColumnType<Double>
-        get() = DoubleColumnType()
 }

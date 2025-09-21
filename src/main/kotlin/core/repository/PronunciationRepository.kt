@@ -7,7 +7,6 @@ import com.saban.gui.model.SearchResult
 import com.saban.user.repository.UserRepository
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.JoinType
-import org.jetbrains.exposed.sql.alias
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.innerJoin
@@ -64,8 +63,6 @@ class PronunciationRepository {
     }
 
     fun searchEntriesByLanguage(searchText: String): Map<String, List<SearchResult>> = transaction {
-        val rankAlias = CustomTsRankFunction(PronunciationTable.searchTsv, searchText).alias("rank")
-
         PronunciationTable.innerJoin(
             LanguageRepository.LanguageTable,
             { PronunciationTable.languageId },

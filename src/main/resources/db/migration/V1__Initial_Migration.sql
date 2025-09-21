@@ -1,3 +1,10 @@
+CREATE EXTENSION IF NOT EXISTS unaccent;
+
+CREATE TEXT SEARCH CONFIGURATION simple_unaccent (COPY = simple);
+ALTER TEXT SEARCH CONFIGURATION simple_unaccent
+  ALTER MAPPING FOR hword, hword_part, word
+  WITH unaccent, simple;
+
 CREATE TABLE IF NOT EXISTS session_storage (
     id text primary key,
     session_value text
@@ -29,7 +36,7 @@ CREATE TABLE IF NOT EXISTS pronunciation
     user_id     INT                      NOT NULL,
     language_id INT                      NOT NULL,
     phrase_text TEXT                     NOT NULL,
-    search_tsv  tsvector                 NOT NULL GENERATED ALWAYS AS (to_tsvector('simple', phrase_text)) STORED,
+    search_tsv  tsvector                 NOT NULL,
     is_approved BOOLEAN                  NOT NULL,
     created_at  TIMESTAMP WITH TIME ZONE NOT NULL,
     s3_key      TEXT                     NOT NULL,
@@ -53,3 +60,16 @@ CREATE INDEX pronunciation_search_tsv_idx ON pronunciation USING gin (search_tsv
 CREATE UNIQUE INDEX pronunciation_language_name_idx on pronunciation (language_id, phrase_text);
 CREATE INDEX user_name_idx on saban_user (username);
 CREATE INDEX user_email_idx on saban_user (email);
+
+-- Trigger
+CREATE OR REPLACE FUNCTION pronunciation_search_tsv_trigger()
+RETURNS trigger AS $$
+BEGIN
+  NEW.search_tsv := to_tsvector('simple_unaccent', NEW.phrase_text);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER pronunciation_search_tsv_update
+BEFORE INSERT OR UPDATE ON pronunciation
+FOR EACH ROW EXECUTE FUNCTION pronunciation_search_tsv_trigger();
