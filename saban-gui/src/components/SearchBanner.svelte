@@ -39,7 +39,7 @@
 {#if largeBanner === true}
     <div class="h-1/4 min-h-[200px] place-items-center bg-gray-300 w-full">
         <div class="h-2/3 place-content-center">
-            <Label class="text-3xl">Saban. Pronuncation Dictionary</Label>
+            <Label class="text-3xl">Saban. Pronunciation Dictionary.</Label>
         </div>
         <div class="flex flex-row h-1/3 gap-2">
             <Input type="search" class="w-[400px]" onkeydown={handleKeydown} placeholder="Search pronunciation..."
