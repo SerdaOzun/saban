@@ -1,7 +1,6 @@
 package com.saban
 
 import com.saban.core.repository.LanguageRepository.LanguageTable
-import com.saban.core.repository.WordRepository.WordEntity
 import com.saban.plugins.*
 import com.saban.gui.routes.handleAuthenticationRoute
 import com.saban.gui.routes.handleGuiRoute

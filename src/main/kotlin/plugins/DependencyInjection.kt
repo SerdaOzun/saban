@@ -3,12 +3,12 @@ package com.saban.plugins
 import com.saban.core.repository.LanguageRepository
 import com.saban.core.repository.PronunciationRepository
 import com.saban.core.repository.VotingRepository
-import com.saban.core.repository.WordRepository
 import com.saban.core.service.PronunciationService
 import com.saban.user.service.AuthenticationService
 import com.saban.gui.service.GuiService
 import com.saban.storage.S3Service
 import com.saban.user.repository.UserRepository
+import com.saban.user.repository.user.repository.SessionRepository
 import io.ktor.server.application.*
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -21,8 +21,8 @@ fun Application.configureDependencyInjection() {
         slf4jLogger()
         modules(module {
             single(createdAtStart = true) { SabanConfig() }
+            single { SessionRepository() }
             single { LanguageRepository() }
-            single { WordRepository() }
             single { PronunciationRepository() }
             single { UserRepository() }
             single { VotingRepository() }

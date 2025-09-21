@@ -1,23 +1,30 @@
 package com.saban.core.repository
 
 import com.saban.core.model.Pronunciation
-import com.saban.core.repository.WordRepository.WordEntity
+import com.saban.core.model.Word
 import com.saban.gui.model.PronunciationResult
+import com.saban.gui.model.SearchResult
 import com.saban.user.repository.UserRepository
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.JoinType
+import org.jetbrains.exposed.sql.alias
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.andWhere
+import org.jetbrains.exposed.sql.innerJoin
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.javatime.timestampWithTimeZone
+import org.jetbrains.exposed.sql.lowerCase
 import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
 class PronunciationRepository {
     object PronunciationTable : IntIdTable("pronunciation") {
+        val text = text("phrase_text")
+        val searchTsv = registerColumn<String>("search_tsv", TsVectorColumnType()).databaseGenerated()
+        val languageId = reference("language_id", LanguageRepository.LanguageTable)
         val userId = reference("user_id", UserRepository.UserEntity)
-        val wordId = reference("word_id", WordRepository.WordEntity)
         val s3Key = text("s3_key") //sound file
         val createdAt = timestampWithTimeZone(name = "created_at")
 
@@ -29,11 +36,6 @@ class PronunciationRepository {
      * Join Pronunciations on Word, User and Language
      */
     private val joinedPronunciationsTable = PronunciationTable.join(
-        otherTable = WordEntity,
-        joinType = JoinType.INNER,
-        onColumn = PronunciationTable.wordId,
-        otherColumn = WordEntity.id
-    ).join(
         otherTable = UserRepository.UserEntity,
         joinType = JoinType.INNER,
         onColumn = PronunciationTable.userId,
@@ -41,38 +43,65 @@ class PronunciationRepository {
     ).join(
         otherTable = LanguageRepository.LanguageTable,
         joinType = JoinType.INNER,
-        onColumn = WordEntity.language,
+        onColumn = PronunciationTable.languageId,
         otherColumn = LanguageRepository.LanguageTable.id
     )
 
-    suspend fun savePronunciation(
+    fun savePronunciation(
         userId: Int,
-        wordId: Int,
+        word: String,
+        langId: Int,
         fileKey: String,
-    ): Int = newSuspendedTransaction {
+    ): Int = transaction {
         PronunciationTable.insertAndGetId {
             it[this.userId] = userId
-            it[this.wordId] = wordId
+            it[this.text] = word
+            it[this.languageId] = langId
             it[this.s3Key] = fileKey
             it[this.createdAt] = OffsetDateTime.now(ZoneOffset.UTC)
             it[this.isApproved] = true
         }.value
     }
 
-    suspend fun getPronunciations(word: String, language: String): List<PronunciationResult> = newSuspendedTransaction {
+    fun searchEntriesByLanguage(searchText: String): Map<String, List<SearchResult>> = transaction {
+        val rankAlias = CustomTsRankFunction(PronunciationTable.searchTsv, searchText).alias("rank")
+
+        PronunciationTable.innerJoin(
+            LanguageRepository.LanguageTable,
+            { PronunciationTable.languageId },
+            { LanguageRepository.LanguageTable.id }
+        ).select(PronunciationTable.id, PronunciationTable.text, LanguageRepository.LanguageTable.languageName)
+            .where { TsQueryOp(PronunciationTable.searchTsv, searchText) }
+            .groupBy(
+                { it[LanguageRepository.LanguageTable.languageName] },
+                { SearchResult(it[PronunciationTable.text], it[PronunciationTable.id].value) }
+            )
+    }
+
+    fun getPronunciations(word: String, language: String): List<PronunciationResult> = transaction {
         joinedPronunciationsTable.select(
             PronunciationTable.s3Key,
             PronunciationTable.createdAt,
-            WordEntity.text,
+            PronunciationTable.text,
             UserRepository.UserEntity.username
-        ).where { WordEntity.text like "${word.trim()}%" }
+        ).where { TsQueryOp(PronunciationTable.searchTsv, word) }
             .andWhere { LanguageRepository.LanguageTable.languageName eq language }
             .map(::PronunciationResult)
     }
 
-    suspend fun findPronunciation(wordId: Int): Pronunciation? = newSuspendedTransaction {
-        PronunciationTable.selectAll().where { PronunciationTable.wordId eq wordId }.singleOrNull()?.let {
+    fun read(id: Int): Pronunciation? = transaction {
+        PronunciationTable.selectAll().where { PronunciationTable.id eq id }.singleOrNull()?.let {
             Pronunciation(it)
         }
+    }
+
+    fun findWord(word: String, language: String): Word? = transaction {
+        PronunciationTable.innerJoin(
+            LanguageRepository.LanguageTable,
+            { PronunciationTable.languageId },
+            { LanguageRepository.LanguageTable.id }
+        ).selectAll()
+            .where { PronunciationTable.text.lowerCase() eq word.lowercase() and (LanguageRepository.LanguageTable.languageName eq language) }
+            .singleOrNull()?.let { Word(it) }
     }
 }

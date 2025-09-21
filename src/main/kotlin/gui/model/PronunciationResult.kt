@@ -1,7 +1,6 @@
 package com.saban.gui.model
 
 import com.saban.core.repository.PronunciationRepository
-import com.saban.core.repository.WordRepository
 import com.saban.user.repository.UserRepository
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
@@ -18,7 +17,7 @@ data class PronunciationResult(
 ) {
     constructor(row: ResultRow) : this(
         username = row[UserRepository.UserEntity.username],
-        word = row[WordRepository.WordEntity.text],
+        word = row[PronunciationRepository.PronunciationTable.text],
         s3key = row[PronunciationRepository.PronunciationTable.s3Key],
         createdAt = row[PronunciationRepository.PronunciationTable.createdAt]
     )

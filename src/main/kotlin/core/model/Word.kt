@@ -1,7 +1,7 @@
 package com.saban.core.model
 
 import com.saban.core.repository.LanguageRepository
-import com.saban.core.repository.WordRepository
+import com.saban.core.repository.PronunciationRepository
 import org.jetbrains.exposed.sql.ResultRow
 
 data class Word(
@@ -11,8 +11,8 @@ data class Word(
     val language: String
 ) {
     constructor(resultRow: ResultRow) : this(
-        wordId = resultRow[WordRepository.WordEntity.id].value,
-        word = resultRow[WordRepository.WordEntity.text],
+        wordId = resultRow[PronunciationRepository.PronunciationTable.id].value,
+        word = resultRow[PronunciationRepository.PronunciationTable.text],
         languageId = resultRow[LanguageRepository.LanguageTable.id].value,
         language = resultRow[LanguageRepository.LanguageTable.languageName],
     )

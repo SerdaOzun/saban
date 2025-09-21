@@ -4,7 +4,6 @@ import com.saban.core.service.PronunciationService
 import com.saban.gui.model.PronunciationResult
 import com.saban.gui.model.SearchResult
 import com.saban.gui.model.requests.PronunciationRequest
-import com.saban.gui.model.requests.SearchRequest
 import com.saban.storage.S3Service
 import com.saban.util.S3UploadException
 import io.ktor.http.content.MultiPartData
@@ -12,7 +11,6 @@ import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.util.cio.writeChannel
 import io.ktor.utils.io.copyAndClose
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -73,11 +71,9 @@ class GuiService : KoinComponent {
         userId: Int,
         language: String
     ) = coroutineScope {
-        val word = async { pronunciationService.getOrSaveWord(word, language) }
         val fileKey = runCatching { s3Service.savePronunciation(audioFile, objectName, language) }.getOrNull()
             ?: throw S3UploadException("Failed to upload pronunciation to S3 bucket")
-
-        pronunciationService.savePronunciation(userId, word.await().wordId, fileKey)
+        pronunciationService.savePronunciation(userId, word, language, fileKey)
     }
 
 
