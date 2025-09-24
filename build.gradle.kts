@@ -106,7 +106,7 @@ tasks {
 
     named<ShadowJar>("shadowJar") {
         mergeServiceFiles()
-        minimize()
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
         dependsOn(copyTask)
     }
 }
