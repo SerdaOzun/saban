@@ -1,9 +1,8 @@
 package com.saban.core.repository
 
 import com.saban.user.repository.UserRepository
-import org.jetbrains.exposed.dao.id.CompositeIdTable
-import org.jetbrains.exposed.sql.javatime.datetime
-import java.time.LocalDateTime
+import org.jetbrains.exposed.v1.core.dao.id.CompositeIdTable
+import org.jetbrains.exposed.v1.javatime.datetime
 
 class VotingRepository {
 

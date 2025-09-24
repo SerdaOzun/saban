@@ -3,7 +3,7 @@ package com.saban.core.model
 import com.saban.core.repository.PronunciationRepository
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
-import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.v1.core.ResultRow
 import java.time.OffsetDateTime
 
 @Serializable

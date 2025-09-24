@@ -1,9 +1,10 @@
 package com.saban.core.repository
 
 import com.saban.core.model.Language
-import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.koin.core.component.KoinComponent
 
 class LanguageRepository : KoinComponent {

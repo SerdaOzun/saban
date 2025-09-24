@@ -3,8 +3,7 @@ package com.saban.plugins
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.server.application.*
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.DatabaseConfig
+import org.jetbrains.exposed.v1.jdbc.Database
 import org.koin.ktor.ext.inject
 
 fun Application.configureDatabases() {
@@ -24,8 +23,5 @@ fun Application.configureDatabases() {
 
     val dataSource = HikariDataSource(config)
 
-    Database.connect(
-        datasource = dataSource,
-        databaseConfig = DatabaseConfig {}
-    )
+    Database.connect(dataSource)
 }

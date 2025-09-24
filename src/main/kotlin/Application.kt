@@ -9,8 +9,8 @@ import com.saban.storage.S3Service
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.launch
-import org.jetbrains.exposed.sql.insertIgnore
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.insertIgnore
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.koin.ktor.ext.inject
 
 fun main(args: Array<String>) {

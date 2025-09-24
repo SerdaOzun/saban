@@ -2,7 +2,7 @@ package com.saban.user.model
 
 import com.saban.user.repository.UserRepository.UserEntity
 import kotlinx.serialization.Serializable
-import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.v1.core.ResultRow
 import java.time.OffsetDateTime
 
 //android/util/Patterns.java EMAIL_ADDRESS pattern

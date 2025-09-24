@@ -2,7 +2,7 @@ package com.saban.core.model
 
 import com.saban.core.repository.LanguageRepository
 import com.saban.core.repository.PronunciationRepository
-import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.v1.core.ResultRow
 
 data class Word(
     val wordId: Int,

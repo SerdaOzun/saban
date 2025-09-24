@@ -1,7 +1,7 @@
 package com.saban.core.model
 
 import com.saban.core.repository.LanguageRepository
-import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.v1.core.ResultRow
 
 data class Language(
     val id: Int,
