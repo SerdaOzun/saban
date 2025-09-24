@@ -4,8 +4,9 @@ import com.saban.gui.model.SearchResult
 import com.saban.gui.model.requests.PronunciationRequest
 import com.saban.plugins.UserSession
 import com.saban.plugins.getUser
-import com.saban.gui.model.requests.SearchRequest
 import com.saban.gui.service.GuiService
+import com.saban.plugins.getUserSession
+import com.saban.util.countries
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -73,6 +74,39 @@ fun Routing.handleGuiRoute() {
             } catch (e: Exception) {
                 logger.error("Failed to find pronunciations", e)
                 call.respond(HttpStatusCode.InternalServerError, generalErrorMessage)
+            }
+        }
+
+        route("/settings") {
+            post("/country/{country}") {
+                val userId = call.getUserSession()?.userId ?: return@post call.respond(HttpStatusCode.Forbidden)
+
+                val country = call.parameters["country"]
+                    ?: return@post call.respond(HttpStatusCode.BadRequest, "country missing")
+
+                if (country !in countries) {
+                    return@post call.respond(HttpStatusCode.BadRequest, "Country not allowed")
+                }
+
+                try {
+                    guiService.updateCountry(userId, country)
+                    call.respond(HttpStatusCode.OK)
+                } catch (e: Exception) {
+                    logger.error("Failed to update country", e)
+                    call.respond(HttpStatusCode.InternalServerError, generalErrorMessage)
+                }
+            }
+
+            get("/data") {
+                val userId = call.getUserSession()?.userId ?: return@get call.respond(HttpStatusCode.Forbidden)
+
+                try {
+                    val settings = guiService.getSettings(userId)
+                    call.respond(settings)
+                } catch (e: Exception) {
+                    logger.error("Failed to fetch settings data", e)
+                    call.respond(HttpStatusCode.InternalServerError, generalErrorMessage)
+                }
             }
         }
 

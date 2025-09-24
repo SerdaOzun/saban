@@ -66,5 +66,5 @@ data class UserSession(
 )
 
 fun UserSession.getUser(): UserModel? = userRepository.findUserByEmail(this.email)
-
+fun ApplicationCall.getUserSession() = sessions.get<UserSession>()
 

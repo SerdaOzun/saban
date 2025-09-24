@@ -3,8 +3,10 @@ package com.saban.gui.service
 import com.saban.core.service.PronunciationService
 import com.saban.gui.model.PronunciationResult
 import com.saban.gui.model.SearchResult
+import com.saban.gui.model.SettingsResponse
 import com.saban.gui.model.requests.PronunciationRequest
 import com.saban.storage.S3Service
+import com.saban.user.repository.UserRepository
 import com.saban.util.S3UploadException
 import io.ktor.http.content.MultiPartData
 import io.ktor.http.content.PartData
@@ -18,6 +20,7 @@ import java.io.File
 
 class GuiService : KoinComponent {
     private val pronunciationService: PronunciationService by inject()
+    private val userRepository: UserRepository by inject()
 
     private val s3Service: S3Service by inject()
 
@@ -76,5 +79,6 @@ class GuiService : KoinComponent {
         pronunciationService.savePronunciation(userId, word, language, fileKey)
     }
 
-
+    fun updateCountry(userId: Int, country: String) = userRepository.updateCountry(userId, country)
+    fun getSettings(userId: Int): SettingsResponse = SettingsResponse(userRepository.getCountry(userId))
 }

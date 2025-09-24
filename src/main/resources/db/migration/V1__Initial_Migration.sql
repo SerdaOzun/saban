@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS saban_user
     username      TEXT                     NOT NULL,
     password_hash TEXT                     NOT NULL,
     email         TEXT                     NOT NULL,
-    api_token     TEXT
+    api_token     TEXT,
+    country       TEXT
 );
 
 CREATE TABLE IF NOT EXISTS pronunciation
@@ -40,8 +41,8 @@ CREATE TABLE IF NOT EXISTS pronunciation
     is_approved BOOLEAN                  NOT NULL,
     created_at  TIMESTAMP WITH TIME ZONE NOT NULL,
     s3_key      TEXT                     NOT NULL,
-    CONSTRAINT fk_pronunciation_user_id  FOREIGN KEY (user_id) REFERENCES saban_user (id) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_pronunciation_language_id       FOREIGN KEY (language_id) REFERENCES saban_language (id) ON DELETE RESTRICT ON UPDATE RESTRICT
+    CONSTRAINT  fk_pronunciation_user_id  FOREIGN KEY (user_id) REFERENCES saban_user (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT  fk_pronunciation_language_id FOREIGN KEY (language_id) REFERENCES saban_language (id) ON DELETE RESTRICT ON UPDATE RESTRICT
 );
 
 CREATE TABLE IF NOT EXISTS votes

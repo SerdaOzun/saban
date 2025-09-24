@@ -5,12 +5,11 @@ import com.saban.user.model.UserModel
 import com.saban.util.SabanResult
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.javatime.timestampWithTimeZone
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import org.koin.core.component.KoinComponent
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
@@ -22,7 +21,8 @@ class UserRepository : KoinComponent {
         val email = text("email")
         val createdAt = timestampWithTimeZone(name = "created_at")
         val updatedAt = timestampWithTimeZone(name = "updated_at").nullable()
-        val apiToken = text("api_token")
+        val apiToken = text("api_token").nullable()
+        val country = text("country").nullable()
     }
 
     fun findUserByEmail(email: String): UserModel? = transaction {
@@ -52,6 +52,19 @@ class UserRepository : KoinComponent {
             it[email] = user.email
             it[createdAt] = OffsetDateTime.now(ZoneOffset.UTC)
             it[updatedAt] = null
+            it[country] = null
+        }
+    }
+
+    fun updateCountry(userId: Int, country: String) = transaction {
+        UserEntity.update(where = { UserEntity.id eq userId }) {
+            it[UserEntity.country] = country
+        }
+    }
+
+    fun getCountry(userId: Int): String? = transaction {
+        UserEntity.select(UserEntity.country).where { UserEntity.id eq userId }.singleOrNull()?.let {
+            it[UserEntity.country]
         }
     }
 }
