@@ -6,6 +6,10 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Input } from '$lib/components/ui/input';
 	import { onMount } from 'svelte';
+	import { backendUrl } from '../util/SabanConfig.ts';
+	import { toast } from 'svelte-sonner';
+	import { Toaster } from '@/components/ui/sonner/index.ts';
+	import { goto } from '$app/navigation';
 
 	let {
 		word = $bindable('')
@@ -15,6 +19,32 @@
 
 	let selectedLanguage: string | null = $state(null);
 	let serverResponse: string | null = $state(null);
+
+	async function requestWord() {
+		if (!word || !selectedLanguage) return;
+
+		const resp = await fetch(`${backendUrl}/gui/request`, {
+			method: 'POST',
+			credentials: 'include',
+			headers: {
+				'Content-type': 'application/json; charset=UTF-8'
+			},
+			body: JSON.stringify({
+				text: word,
+				language: selectedLanguage
+			})
+		});
+
+		if (resp.status === 401) {
+			await goto('/login');
+		}
+
+		if (resp.ok) {
+			toast.success('Request has been saved', {
+				description: ''
+			});
+		}
+	}
 </script>
 
 <Card.Root class="w-[350px]">
@@ -36,11 +66,17 @@
 			</div>
 		</form>
 	</Card.Content>
-	<Card.Footer class="w-full flex flex-col gap-2">
+	<Card.Footer class="flex w-full flex-col gap-2">
 		{#if serverResponse}
 			<Label class="self-center">{serverResponse}</Label>
 		{/if}
 
-		<Button class="self-end" disabled={selectedLanguage === null || word === '' || word === null}>Send</Button>
+		<Button
+			class="self-end"
+			onclick={requestWord}
+			disabled={selectedLanguage === null || word === '' || word === null}>Send</Button
+		>
 	</Card.Footer>
 </Card.Root>
+
+<Toaster />

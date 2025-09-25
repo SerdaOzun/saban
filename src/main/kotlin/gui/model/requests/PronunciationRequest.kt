@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PronunciationRequest(
-    val searchText: String,
+    val text: String,
     val language: String
 )
 

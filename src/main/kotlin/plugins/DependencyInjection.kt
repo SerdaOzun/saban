@@ -3,7 +3,9 @@ package com.saban.plugins
 import com.saban.core.repository.LanguageRepository
 import com.saban.core.repository.PronunciationRepository
 import com.saban.core.repository.VotingRepository
+import com.saban.core.repository.RequestRepository
 import com.saban.core.service.PronunciationService
+import com.saban.core.service.RequestService
 import com.saban.user.service.AuthenticationService
 import com.saban.gui.service.GuiService
 import com.saban.storage.S3Service
@@ -30,6 +32,8 @@ fun Application.configureDependencyInjection() {
             single { GuiService() }
             single { S3Service(get()) }
             single { PronunciationService() }
+            single { RequestRepository() }
+            single { RequestService() }
         })
     }
 }

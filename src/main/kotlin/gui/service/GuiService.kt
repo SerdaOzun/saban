@@ -1,6 +1,7 @@
 package com.saban.gui.service
 
 import com.saban.core.service.PronunciationService
+import com.saban.core.service.RequestService
 import com.saban.gui.model.PronunciationResult
 import com.saban.gui.model.SearchResult
 import com.saban.gui.model.SettingsResponse
@@ -21,6 +22,7 @@ import java.io.File
 class GuiService : KoinComponent {
     private val pronunciationService: PronunciationService by inject()
     private val userRepository: UserRepository by inject()
+    private val requestService: RequestService by inject()
 
     private val s3Service: S3Service by inject()
 
@@ -81,4 +83,5 @@ class GuiService : KoinComponent {
 
     fun updateCountry(userId: Int, country: String) = userRepository.updateCountry(userId, country)
     fun getSettings(userId: Int): SettingsResponse = SettingsResponse(userRepository.getCountry(userId))
+    fun saveRequest(userId: Int, request: PronunciationRequest) = requestService.save(userId, request)
 }

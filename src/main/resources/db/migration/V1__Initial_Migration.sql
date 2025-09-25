@@ -56,7 +56,20 @@ CREATE TABLE IF NOT EXISTS votes
     CONSTRAINT fk_votes_recording_id__id FOREIGN KEY (pronunciation_id) REFERENCES pronunciation (id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS request
+(
+    id           integer primary key generated always as identity,
+    requested_by INT                      NOT NULL,
+    language_id  INT                      NOT NULL,
+    phrase_text  TEXT                     NOT NULL,
+    created_at   TIMESTAMP WITH TIME ZONE NOT NULL,
+    CONSTRAINT   fk_pronunciation_user_id  FOREIGN KEY (requested_by) REFERENCES saban_user (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT   fk_pronunciation_language_id FOREIGN KEY (language_id) REFERENCES saban_language (id) ON DELETE RESTRICT ON UPDATE RESTRICT
+);
+
 -- Indexes
+CREATE INDEX request_language_date_idx ON request (language_id, created_at);
+CREATE INDEX request_date_idx ON request (created_at);
 CREATE INDEX pronunciation_search_tsv_idx ON pronunciation USING gin (search_tsv);
 CREATE UNIQUE INDEX pronunciation_language_name_idx on pronunciation (language_id, phrase_text);
 CREATE INDEX user_name_idx on saban_user (username);

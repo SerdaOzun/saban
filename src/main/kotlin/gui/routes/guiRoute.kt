@@ -110,16 +110,18 @@ fun Routing.handleGuiRoute() {
             }
         }
 
-        post("/request") {
-            val request = call.receive<PronunciationRequest>()
+        route("/request") {
+            post("") {
+                val request = call.receive<PronunciationRequest>()
+                val userId = call.getUserSession()?.userId ?: return@post call.respond(HttpStatusCode.Unauthorized)
 
-            try {
-                //todo
-                // Wort + Sprache in DB speichern
-
-            } catch (e: Exception) {
-                logger.error("Failed to save request", e)
-                call.respond(HttpStatusCode.InternalServerError, generalErrorMessage)
+                try {
+                    guiService.saveRequest(userId, request)
+                    call.respond(HttpStatusCode.OK)
+                } catch (e: Exception) {
+                    logger.error("Failed to save request", e)
+                    call.respond(HttpStatusCode.InternalServerError, generalErrorMessage)
+                }
             }
         }
     }
