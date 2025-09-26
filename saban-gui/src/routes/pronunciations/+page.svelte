@@ -32,7 +32,7 @@
 				'Content-type': 'application/json; charset=UTF-8'
 			},
 			body: JSON.stringify({
-				searchText: searchText,
+				text: searchText,
 				language: lang
 			})
 		});

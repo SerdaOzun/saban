@@ -18,7 +18,7 @@ class TsVectorColumnType : ColumnType<String>(nullable = true) {
     override fun sqlType(): String = TS_VECTOR_SQL_TYPE
 
     override fun valueFromDB(value: Any): String? {
-        return value as String
+        return value as String?
     }
 
     override fun valueToDB(value: String?): Any? {

@@ -44,7 +44,6 @@
 		});
 
 		if (resp.ok) {
-            console.log("ok")
 			toast.success('Country has been saved', {
 				description: ''
 			});
