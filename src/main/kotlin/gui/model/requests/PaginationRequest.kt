@@ -4,12 +4,12 @@ import kotlinx.serialization.Serializable
 
 interface PaginationRequest {
     val offset: Int
-    val count: Int
+    val limit: Int
 }
 
 @Serializable
 data class PaginatedPronunciationsRequest(
-    override val count: Int,
+    override val limit: Int,
     override val offset: Int,
     val language: String?
 ) : PaginationRequest

@@ -14,7 +14,7 @@ class RequestService : KoinComponent {
     private val langRepo by inject<LanguageRepository>()
 
     fun getRequests(request: PaginatedPronunciationsRequest): PaginatedPronunciationResponse {
-        return requestRepo.getRequests(request.language, request.offset, request.count)
+        return requestRepo.getRequests(request.language, request.offset, request.limit)
     }
 
     fun getRequest(id: Int) = requestRepo.read(id)

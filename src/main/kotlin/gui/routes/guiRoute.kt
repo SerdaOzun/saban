@@ -125,7 +125,7 @@ fun Routing.handleGuiRoute() {
                 }
             }
 
-            get("") {
+            post("/paginated") {
                 try {
                     val request = call.receive<PaginatedPronunciationsRequest>()
                     val response = guiService.getRequests(request)
