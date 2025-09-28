@@ -1,11 +1,14 @@
 package com.saban.core.repository
 
-import com.saban.core.model.core.model.Request
+import com.saban.core.model.core.model.PronunciationRequest
+import com.saban.gui.model.PaginatedPronunciationResponse
 import com.saban.user.repository.UserRepository
 import org.jetbrains.exposed.v1.core.JoinType
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.javatime.timestampWithTimeZone
+import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -49,19 +52,32 @@ class RequestRepository {
         }.value
     }
 
-    fun getRequests(language: String): List<Request> = transaction {
-        joinedRequestTable.select(
+    fun getRequests(language: String? = null, offset: Int, count: Int): PaginatedPronunciationResponse = transaction {
+        val query = joinedRequestTable.select(
             RequestTable.id,
             RequestTable.createdAt,
             LanguageRepository.LanguageTable.id,
+            LanguageRepository.LanguageTable.languageName,
             RequestTable.text,
             UserRepository.UserEntity.username
-        ).where { LanguageRepository.LanguageTable.languageName eq language }
-            .map(::Request)
+        )
+
+        language?.let {
+            query.andWhere { LanguageRepository.LanguageTable.languageName eq language }
+        }
+
+        val totalCount = query.count()
+        val data = query
+            .offset(offset.toLong())
+            .limit(count)
+            .orderBy(RequestTable.createdAt, SortOrder.DESC)
+            .map(::PronunciationRequest)
+
+        PaginatedPronunciationResponse(totalCount, data)
     }
 
-    fun read(id: Int): Request? = transaction {
-        joinedRequestTable.selectAll().where { RequestTable.id eq id }.singleOrNull()?.let(::Request)
+    fun read(id: Int): PronunciationRequest? = transaction {
+        joinedRequestTable.selectAll().where { RequestTable.id eq id }.singleOrNull()?.let(::PronunciationRequest)
     }
 
 }

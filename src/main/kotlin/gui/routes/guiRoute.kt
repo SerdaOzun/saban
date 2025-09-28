@@ -1,7 +1,9 @@
 package com.saban.gui.routes
 
 import com.saban.gui.model.SearchResult
-import com.saban.gui.model.requests.PronunciationRequest
+import com.saban.gui.model.requests.PaginatedPronunciationsRequest
+import com.saban.gui.model.requests.PronunciationSaveRequest
+import com.saban.gui.model.requests.PronunciationSearchRequest
 import com.saban.plugins.UserSession
 import com.saban.plugins.getUser
 import com.saban.gui.service.GuiService
@@ -66,7 +68,7 @@ fun Routing.handleGuiRoute() {
          * Find pronunciations for a specific search term and language
          */
         post("/getPronunciations") {
-            val request = call.receive<PronunciationRequest>()
+            val request = call.receive<PronunciationSearchRequest>()
 
             try {
                 val pronunciations = guiService.getPronunciations(request)
@@ -112,14 +114,24 @@ fun Routing.handleGuiRoute() {
 
         route("/request") {
             post("") {
-                val request = call.receive<PronunciationRequest>()
-                val userId = call.getUserSession()?.userId ?: return@post call.respond(HttpStatusCode.Unauthorized)
-
                 try {
+                    val request = call.receive<PronunciationSaveRequest>()
+                    val userId = call.getUserSession()?.userId ?: return@post call.respond(HttpStatusCode.Unauthorized)
                     guiService.saveRequest(userId, request)
                     call.respond(HttpStatusCode.OK)
                 } catch (e: Exception) {
                     logger.error("Failed to save request", e)
+                    call.respond(HttpStatusCode.InternalServerError, generalErrorMessage)
+                }
+            }
+
+            get("") {
+                try {
+                    val request = call.receive<PaginatedPronunciationsRequest>()
+                    val response = guiService.getRequests(request)
+                    call.respond(response)
+                } catch (e: Exception) {
+                    logger.error("Failed to fetch pronunciation requests", e)
                     call.respond(HttpStatusCode.InternalServerError, generalErrorMessage)
                 }
             }

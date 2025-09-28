@@ -2,10 +2,13 @@ package com.saban.gui.service
 
 import com.saban.core.service.PronunciationService
 import com.saban.core.service.RequestService
+import com.saban.gui.model.PaginatedPronunciationResponse
 import com.saban.gui.model.PronunciationResult
 import com.saban.gui.model.SearchResult
 import com.saban.gui.model.SettingsResponse
-import com.saban.gui.model.requests.PronunciationRequest
+import com.saban.gui.model.requests.PaginatedPronunciationsRequest
+import com.saban.gui.model.requests.PronunciationSaveRequest
+import com.saban.gui.model.requests.PronunciationSearchRequest
 import com.saban.storage.S3Service
 import com.saban.user.repository.UserRepository
 import com.saban.util.S3UploadException
@@ -58,8 +61,8 @@ class GuiService : KoinComponent {
     /**
      * Get pronunciations for search term and language
      */
-    suspend fun getPronunciations(pronunciationRequest: PronunciationRequest): List<PronunciationResult> {
-        val (searchText, language) = pronunciationRequest
+    suspend fun getPronunciations(pronunciationSearchRequest: PronunciationSearchRequest): List<PronunciationResult> {
+        val (searchText, language) = pronunciationSearchRequest
 
         return pronunciationService.getPronunciations(searchText, language).map {
             it.copy(
@@ -83,5 +86,8 @@ class GuiService : KoinComponent {
 
     fun updateCountry(userId: Int, country: String) = userRepository.updateCountry(userId, country)
     fun getSettings(userId: Int): SettingsResponse = SettingsResponse(userRepository.getCountry(userId))
-    fun saveRequest(userId: Int, request: PronunciationRequest) = requestService.save(userId, request)
+    fun saveRequest(userId: Int, request: PronunciationSaveRequest) = requestService.save(userId, request)
+    fun getRequests(request: PaginatedPronunciationsRequest): PaginatedPronunciationResponse =
+        requestService.getRequests(request)
+
 }
