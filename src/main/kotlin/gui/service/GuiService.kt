@@ -88,6 +88,6 @@ class GuiService : KoinComponent {
     fun getSettings(userId: Int): SettingsResponse = SettingsResponse(userRepository.getCountry(userId))
     fun saveRequest(userId: Int, request: PronunciationSaveRequest) = requestService.save(userId, request)
     fun getRequests(request: PaginatedPronunciationsRequest): PaginatedPronunciationResponse =
-        requestService.getRequests(request)
+        requestService.get(request)
 
 }

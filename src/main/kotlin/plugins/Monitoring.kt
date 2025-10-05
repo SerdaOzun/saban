@@ -19,7 +19,10 @@ fun Application.configureMonitoring() {
 
     install(CallLogging) {
         level = Level.INFO
-        filter { call -> !call.request.path().startsWith("/metrics") }
+        val excludedLogs = listOf("/metrics", "/_app/immutable", "/favicon")
+        filter { call ->
+            !excludedLogs.any { call.request.path().startsWith(it) }
+        }
     }
 
     routing {

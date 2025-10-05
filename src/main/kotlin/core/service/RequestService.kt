@@ -13,11 +13,11 @@ class RequestService : KoinComponent {
     private val requestRepo by inject<RequestRepository>()
     private val langRepo by inject<LanguageRepository>()
 
-    fun getRequests(request: PaginatedPronunciationsRequest): PaginatedPronunciationResponse {
+    fun get(request: PaginatedPronunciationsRequest): PaginatedPronunciationResponse {
         return requestRepo.getRequests(request.language, request.offset, request.limit)
     }
 
-    fun getRequest(id: Int) = requestRepo.read(id)
+    fun get(id: Int) = requestRepo.read(id)
     fun save(userId: Int, request: PronunciationSaveRequest) {
         val langId = langRepo.read(request.language)?.id
             ?: throw MissingLanguageException("Language '${request.language}' not found")
