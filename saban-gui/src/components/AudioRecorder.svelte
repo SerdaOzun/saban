@@ -1,77 +1,54 @@
 <script lang="ts">
+	import { backendUrl } from '../util/SabanConfig';
+	import { goto } from '$app/navigation';
+	import { Languages } from '../data/Languages';
 	import * as Card from '$lib/components/ui/card/index.js';
-	import { backendUrl } from '../util/SabanConfig.ts';
-	import { Languages } from '../data/Languages.ts';
 	import { Button } from '$lib/components/ui/button';
-	import SearchableCombobox from './SearchableCombobox.svelte';
 	import { Label } from '$lib/components/ui/label';
 	import { Input } from '$lib/components/ui/input';
-	import { goto } from '$app/navigation';
+	import SearchableCombobox from './SearchableCombobox.svelte';
+	import { AudioRecorder } from '../util/Recorder';
+	import { onDestroy } from 'svelte';
 
-	let {
-		word = $bindable('')
-	}: {
-		word?: string;
-	} = $props();
+	let { word = $bindable(''), selectedLanguage = null } = $props();
 
-	let selectedLanguage: string | null = $state(null);
-	let mediaRecorder: MediaRecorder;
-	let chunks: Blob[] = [];
-	let stream: MediaStream;
-	let recording: boolean = $state(false);
-	let elapsedTime: number = $state(0);
-	let interval: NodeJS.Timeout;
+	let recorder = new AudioRecorder({
+		maxRecordingTime: 10,
+		onElapsed: (sec: number) => (elapsedTime = sec),
+		onStop: (blob: Blob, url: string) => {
+			audioBlob = blob;
+			audioUrl = url;
+		}
+	});
+
+	let recording = $state(false);
+	let elapsedTime = $state(0);
 	let audioUrl: string | null = $state(null);
 	let audioBlob: Blob | null = $state(null);
-	let maxRecordingTime = 10;
-
 	let serverResponse: string | null = $state(null);
 
-	async function startRecording() {
-		audioUrl = null;
-		stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-		mediaRecorder = new MediaRecorder(stream);
-		chunks = [];
-		elapsedTime = 0;
+	onDestroy(() => {
+		stopRecording();
+	})
+
+	function startRecording() {
 		recording = true;
-		mediaRecorder.start();
-
-		interval = setInterval(() => {
-			elapsedTime++;
-			if (elapsedTime >= maxRecordingTime) {
-				stopRecording();
-			}
-		}, 1000);
-
-		mediaRecorder.ondataavailable = (event) => {
-			if (event.data.size > 0) {
-				chunks.push(event.data);
-			}
-		};
-
-		mediaRecorder.onstop = () => {
-			clearInterval(interval);
-			recording = false;
-			const blob = new Blob(chunks, { type: 'audio/ogg; codecs=opus' });
-			audioUrl = URL.createObjectURL(blob);
-			audioBlob = blob;
-		};
+		recorder.start();
 	}
 
 	function stopRecording() {
-		if (mediaRecorder && recording) {
-			mediaRecorder.stop();
-			stream.getTracks().forEach((track) => track.stop());
-		}
+		recording = false;
+		recorder.stop();
 	}
 
 	function reset() {
 		word = '';
 		audioBlob = null;
+		audioUrl = null;
 	}
 
 	async function uploadAudio() {
-		if (audioBlob === null || selectedLanguage === null || word === null) return;
+		if (!audioBlob || !selectedLanguage || !word) return;
 
 		const formData = new FormData();
 		formData.append('file', audioBlob, 'audio.webm');
@@ -83,17 +60,15 @@
 				credentials: 'include'
 			});
 
-			if (response.status === 401) {
-				await goto('/login');
-			}
+			if (response.status === 401) return goto('/login');
 
 			if (response.ok) {
 				reset();
 				serverResponse = await response.text();
 			}
-		} catch (error) {
-			serverResponse = 'Failed to upload audio: ${error}';
-			console.error('Upload failed:', error);
+		} catch (err) {
+			console.error('Upload failed:', err);
+			serverResponse = `Failed to upload audio: ${err}`;
 		}
 	}
 </script>
@@ -142,7 +117,8 @@
 			<Label class="self-center">{serverResponse}</Label>
 		{/if}
 		<Button
-			onclick={uploadAudio} class="self-end"
+			onclick={uploadAudio}
+			class="self-end"
 			disabled={selectedLanguage === null || word === '' || word === null || audioBlob == null}
 			>Send
 		</Button>
