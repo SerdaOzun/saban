@@ -10,9 +10,9 @@ val prometheus_version: String by project
 val flyway_version: String by project
 
 plugins {
-    kotlin("jvm") version "2.2.20"
-    id("io.ktor.plugin") version "3.3.0"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
+    kotlin("jvm") version "2.3.0"
+    id("io.ktor.plugin") version "3.3.2"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.3.0"
     id("com.github.node-gradle.node") version "7.1.0"
 }
 
@@ -53,7 +53,7 @@ dependencies {
     implementation("io.ktor:ktor-server-caching-headers")
 
     //database
-    implementation("org.postgresql:postgresql:42.7.5")
+    implementation("org.postgresql:postgresql:42.7.8")
     implementation("com.zaxxer:HikariCP:6.2.1")
     implementation("org.flywaydb:flyway-core:$flyway_version")
     runtimeOnly("org.flywaydb:flyway-database-postgresql:$flyway_version")
@@ -73,8 +73,8 @@ dependencies {
 }
 
 node {
-    version = "20.17.0" // Set the Node.js version you want
-    npmVersion = "10.8.2" // Optionally specify an npm version
+    version = "24.12.0" // Set the Node.js version you want
+    npmVersion = "11.6.2" // Optionally specify an npm version
     download = false // Automatically download Node.js
     nodeProjectDir = file("${projectDir}/saban-gui") // Set the working directory to the child directory
 }
