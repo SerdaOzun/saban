@@ -1,5 +1,6 @@
 package com.saban.gui.service
 
+import com.saban.core.model.core.model.PronunciationRequest
 import com.saban.core.service.PronunciationService
 import com.saban.core.service.RequestService
 import com.saban.gui.model.PaginatedPronunciationResponse
@@ -89,5 +90,6 @@ class GuiService : KoinComponent {
     fun saveRequest(userId: Int, request: PronunciationSaveRequest) = requestService.save(userId, request)
     fun getRequests(request: PaginatedPronunciationsRequest): PaginatedPronunciationResponse =
         requestService.get(request)
+    fun getRequest(requestId: Int): PronunciationRequest? = requestService.get(requestId)
 
 }

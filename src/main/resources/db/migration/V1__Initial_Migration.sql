@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS request
     language_id  INT                      NOT NULL,
     phrase_text  TEXT                     NOT NULL,
     created_at   TIMESTAMP WITH TIME ZONE NOT NULL,
+    done         BOOLEAN                  NOT NULL,
     CONSTRAINT   fk_pronunciation_user_id  FOREIGN KEY (requested_by) REFERENCES saban_user (id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT   fk_pronunciation_language_id FOREIGN KEY (language_id) REFERENCES saban_language (id) ON DELETE RESTRICT ON UPDATE RESTRICT
 );

@@ -1,7 +1,10 @@
 <script lang="ts">
-	import { toast } from 'svelte-sonner';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { backendUrl } from '../util/SabanConfig';
-	import type { PaginatedPronunciationResponse } from '../data/responses/ResponseInterfaces';
+	import type {
+		PaginatedPronunciationResponse,
+		PronunciationRequest
+	} from '../data/responses/ResponseInterfaces';
 	import * as Table from '$lib/components/ui/table/index.js';
 	import { Label } from '@/components/ui/label';
 	import Button from '@/components/ui/button/button.svelte';
@@ -12,6 +15,8 @@
 	import { MediaQuery } from 'svelte/reactivity';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
+	import AudioRecorder from './AudioRecorder.svelte';
+	import RequestFulfillmentDialog from './RequestFulfillmentDialog.svelte';
 
 	const isDesktop = new MediaQuery('(min-width: 768px)');
 
@@ -23,6 +28,8 @@
 	const siblingCount = $derived(isDesktop.current ? 1 : 0);
 
 	let requests: PaginatedPronunciationResponse = $state({ totalCount: 0, data: [] });
+	let selected: PronunciationRequest | null = $state(null);
+	let showDialog: boolean = $state(false);
 
 	onMount(() => {
 		fetchRequests();
@@ -74,7 +81,6 @@
 			<Table.Root class="w-full table-fixed">
 				<Table.Header>
 					<Table.Row>
-						<!-- <Table.Head class="">Requested by</Table.Head> -->
 						<Table.Head class="w-1/6">Language</Table.Head>
 						<Table.Head class="w-3/6">Word/Phrase</Table.Head>
 						<Table.Head></Table.Head>
@@ -82,8 +88,7 @@
 				</Table.Header>
 				<Table.Body>
 					{#each requests.data as r}
-						<Table.Row>
-							<!-- <Table.Cell class="w-1/4">{r.requestedBy}</Table.Cell> -->
+						<Table.Row class="w-full">
 							<Table.Cell>{r.language}</Table.Cell>
 							<Table.Cell>
 								<div class="line-clamp-2">
@@ -91,7 +96,13 @@
 								</div>
 							</Table.Cell>
 							<Table.Cell class="text-right">
-								<Button variant="outline">Pronounce</Button>
+								<Button
+									variant="outline"
+									onclick={() => {
+										selected = r;
+										showDialog = true;
+									}}>Pronounce</Button
+								>
 							</Table.Cell>
 						</Table.Row>
 					{/each}
@@ -136,3 +147,12 @@
 		</div>
 	{/if}
 </div>
+
+{#if selected}
+	<RequestFulfillmentDialog
+		bind:showDialog
+		word={selected.text}
+		selectedLanguage={selected.language}
+		requestId={selected.id}
+	/>
+{/if}

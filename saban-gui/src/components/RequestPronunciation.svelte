@@ -12,12 +12,13 @@
 	import { goto } from '$app/navigation';
 
 	let {
-		word = $bindable('')
+		word = $bindable(''),
+		selectedLanguage = null
 	}: {
 		word?: string | null;
+		selectedLanguage?: string | null;
 	} = $props();
 
-	let selectedLanguage: string | null = $state(null);
 	let serverResponse: string | null = $state(null);
 
 	async function requestWord() {

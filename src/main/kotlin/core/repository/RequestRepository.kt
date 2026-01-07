@@ -13,6 +13,7 @@ import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
@@ -22,6 +23,7 @@ class RequestRepository {
         val languageId = reference("language_id", LanguageRepository.LanguageTable)
         val requestedBy = reference("requested_by", UserRepository.UserEntity)
         val createdAt = timestampWithTimeZone(name = "created_at")
+        val done = bool("done").default(false)
     }
 
     /**
@@ -78,6 +80,12 @@ class RequestRepository {
 
     fun read(id: Int): PronunciationRequest? = transaction {
         joinedRequestTable.selectAll().where { RequestTable.id eq id }.singleOrNull()?.let(::PronunciationRequest)
+    }
+
+    fun updateRequestDone(requestId: Int) = transaction {
+        RequestTable.update(where = { RequestTable.id eq requestId }) {
+            it[RequestTable.done] = true
+        }
     }
 
 }

@@ -136,5 +136,32 @@ fun Routing.handleGuiRoute() {
                 }
             }
         }
+
+        authenticate("auth-session") {
+            post("/request/upload/{requestId}") {
+                val user = call.principal<UserSession>()?.getUser()
+                    ?: return@post call.respond(HttpStatusCode.Unauthorized)
+
+                val requestId = call.parameters["requestId"]?.toIntOrNull()
+                    ?: return@post call.respond(HttpStatusCode.BadRequest, "RequestId missing")
+
+                val request = guiService.getRequest(requestId)
+                    ?: return@post call.respond(HttpStatusCode.BadRequest, "Request not found")
+
+                val multipart = call.receiveMultipart()
+                try {
+                    val (fileName, audioFile) = guiService.extractFileAndFilename(
+                        multipart,
+                        request.text,
+                        user.username
+                    )
+                    guiService.savePronunciation(audioFile, fileName, request.text, user.id, request.language)
+                    call.respond(HttpStatusCode.OK, "File uploaded successfully")
+                } catch (e: Exception) {
+                    logger.error("Failed to save pronunciation for request: ${e.message}", e)
+                    call.respond(HttpStatusCode.InternalServerError, generalErrorMessage)
+                }
+            }
+        }
     }
 }
