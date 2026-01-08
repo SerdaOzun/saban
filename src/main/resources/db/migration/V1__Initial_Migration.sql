@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS request
 CREATE INDEX request_language_date_idx ON request (language_id, created_at);
 CREATE INDEX request_date_idx ON request (created_at);
 CREATE INDEX pronunciation_search_tsv_idx ON pronunciation USING gin (search_tsv);
-CREATE UNIQUE INDEX pronunciation_language_name_idx on pronunciation (language_id, phrase_text);
+CREATE INDEX pronunciation_language_name_idx on pronunciation (language_id, phrase_text);
 CREATE INDEX user_name_idx on saban_user (username);
 CREATE INDEX user_email_idx on saban_user (email);
 

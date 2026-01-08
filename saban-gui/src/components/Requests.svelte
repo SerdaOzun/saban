@@ -154,5 +154,6 @@
 		word={selected.text}
 		selectedLanguage={selected.language}
 		requestId={selected.id}
+		{fetchRequests}
 	/>
 {/if}

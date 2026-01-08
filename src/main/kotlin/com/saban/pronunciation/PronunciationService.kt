@@ -51,8 +51,6 @@ class PronunciationService(
         pronunciationRepo.savePronunciation(userId, word, langId, fileKey)
     }
 
-    fun getRequest(requestId: Int): RequestEntity? = requestService.get(requestId)
-
     suspend fun extractFileAndFilename(multipart: MultiPartData, word: String, username: String): Pair<String, File> {
         lateinit var fileName: String
         lateinit var audioFile: File

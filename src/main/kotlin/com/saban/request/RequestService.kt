@@ -20,4 +20,7 @@ class RequestService(
             ?: throw MissingLanguageException("Language '${request.language}' not found")
         requestRepo.saveRequest(userId, request.text, langId)
     }
+
+    fun updateRequestDone(id: Int) = requestRepo.updateRequestDone(id)
+
 }

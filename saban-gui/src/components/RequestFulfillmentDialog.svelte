@@ -10,17 +10,20 @@
 	import SearchableCombobox from './SearchableCombobox.svelte';
 	import { AudioRecorder } from '../util/Recorder';
 	import { onDestroy } from 'svelte';
+	import { toast, Toaster } from 'svelte-sonner';
 
 	let {
 		word,
 		selectedLanguage,
 		showDialog = $bindable(),
-        requestId
+		requestId,
+		fetchRequests
 	}: {
 		word: string;
 		selectedLanguage: string;
 		showDialog: boolean;
-        requestId: number
+		requestId: number;
+		fetchRequests: () => void;
 	} = $props();
 
 	let recorder = new AudioRecorder({
@@ -44,7 +47,7 @@
 
 	function startRecording() {
 		audioBlob = null;
-    	audioUrl = null;
+		audioUrl = null;
 		recording = true;
 		recorder.start();
 	}
@@ -77,7 +80,9 @@
 
 			if (response.ok) {
 				reset();
-				serverResponse = await response.text();
+				toast.success('Pronunciation saved', { description: '' });
+				fetchRequests();
+				showDialog = false;
 			}
 		} catch (err) {
 			console.error('Upload failed:', err);
@@ -128,9 +133,11 @@
 		{/if}
 		<Button
 			onclick={uploadRequestedAudio}
-			class="justify-end w-fit"
+			class="w-fit justify-end"
 			disabled={selectedLanguage === null || word === '' || word === null || audioBlob == null}
 			>Send
 		</Button>
 	</Dialog.Content>
 </Dialog.Root>
+
+<Toaster/>

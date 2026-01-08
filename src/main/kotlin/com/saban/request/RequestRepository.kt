@@ -58,7 +58,9 @@ class RequestRepository {
             LanguageRepository.LanguageTable.languageName,
             RequestTable.text,
             UserRepository.UserEntity.username
-        )
+        ).where {
+            RequestTable.done eq false
+        }
 
         language?.let {
             query.andWhere { LanguageRepository.LanguageTable.languageName eq language }

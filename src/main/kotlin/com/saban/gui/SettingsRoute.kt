@@ -15,36 +15,34 @@ fun Route.settingsRoute() {
 
     authenticate("auth-session") {
         route("/settings") {
-            route("/settings") {
-                post("/country/{country}") {
-                    val userId = call.getUserSession()?.userId ?: return@post call.respond(HttpStatusCode.Forbidden)
+            post("/country/{country}") {
+                val userId = call.getUserSession()?.userId ?: return@post call.respond(HttpStatusCode.Forbidden)
 
-                    val country = call.parameters["country"]
-                        ?: return@post call.respond(HttpStatusCode.BadRequest, "country missing")
+                val country = call.parameters["country"]
+                    ?: return@post call.respond(HttpStatusCode.BadRequest, "country missing")
 
-                    if (country !in countries) {
-                        return@post call.respond(HttpStatusCode.BadRequest, "Country not allowed")
-                    }
-
-                    try {
-                        settingsService.updateCountry(userId, country)
-                        call.respond(HttpStatusCode.OK)
-                    } catch (e: Exception) {
-                        logger.error("Failed to update country", e)
-                        call.respond(HttpStatusCode.InternalServerError)
-                    }
+                if (country !in countries) {
+                    return@post call.respond(HttpStatusCode.BadRequest, "Country not allowed")
                 }
 
-                get("/data") {
-                    val userId = call.getUserSession()?.userId ?: return@get call.respond(HttpStatusCode.Forbidden)
+                try {
+                    settingsService.updateCountry(userId, country)
+                    call.respond(HttpStatusCode.OK)
+                } catch (e: Exception) {
+                    logger.error("Failed to update country", e)
+                    call.respond(HttpStatusCode.InternalServerError)
+                }
+            }
 
-                    try {
-                        val settings = settingsService.getSettings(userId)
-                        call.respond(settings)
-                    } catch (e: Exception) {
-                        logger.error("Failed to fetch settings data", e)
-                        call.respond(HttpStatusCode.InternalServerError)
-                    }
+            get("/data") {
+                val userId = call.getUserSession()?.userId ?: return@get call.respond(HttpStatusCode.Forbidden)
+
+                try {
+                    val settings = settingsService.getSettings(userId)
+                    call.respond(settings)
+                } catch (e: Exception) {
+                    logger.error("Failed to fetch settings data", e)
+                    call.respond(HttpStatusCode.InternalServerError)
                 }
             }
         }
