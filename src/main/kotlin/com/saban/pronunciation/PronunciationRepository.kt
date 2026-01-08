@@ -1,0 +1,108 @@
+package com.saban.pronunciation
+
+import com.saban.languages.LanguageRepository
+import com.saban.pronunciation.model.PronunciationEntity
+import com.saban.pronunciation.model.PronunciationResult
+import com.saban.pronunciation.model.Word
+import com.saban.search.SearchResult
+import com.saban.user.UserRepository
+import com.saban.util.TsQueryOp
+import com.saban.util.TsVectorColumnType
+import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
+import org.jetbrains.exposed.v1.javatime.timestampWithTimeZone
+import org.jetbrains.exposed.v1.jdbc.andWhere
+import org.jetbrains.exposed.v1.jdbc.insertAndGetId
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+
+class PronunciationRepository {
+    object PronunciationTable : IntIdTable("pronunciation") {
+        val text = text("phrase_text")
+        val searchTsv = registerColumn<String>("search_tsv", TsVectorColumnType()).databaseGenerated()
+        val languageId = reference("language_id", LanguageRepository.LanguageTable)
+        val userId = reference("user_id", UserRepository.UserEntity)
+        val s3Key = text("s3_key") //sound file
+        val createdAt = timestampWithTimeZone(name = "created_at")
+
+        //When users collect bad ratings, their pronunciations must be approved first
+        val isApproved = bool("is_approved")
+    }
+
+    /**
+     * Join Pronunciations on Word, User and Language
+     */
+    private val joinedPronunciationsTable = PronunciationTable.join(
+        otherTable = UserRepository.UserEntity,
+        joinType = JoinType.INNER,
+        onColumn = PronunciationTable.userId,
+        otherColumn = UserRepository.UserEntity.id
+    ).join(
+        otherTable = LanguageRepository.LanguageTable,
+        joinType = JoinType.INNER,
+        onColumn = PronunciationTable.languageId,
+        otherColumn = LanguageRepository.LanguageTable.id
+    )
+
+    fun savePronunciation(
+        userId: Int,
+        word: String,
+        langId: Int,
+        fileKey: String,
+    ): Int = transaction {
+        PronunciationTable.insertAndGetId {
+            it[this.userId] = userId
+            it[this.text] = word
+            it[this.languageId] = langId
+            it[this.s3Key] = fileKey
+            it[this.createdAt] = OffsetDateTime.now(ZoneOffset.UTC)
+            it[this.isApproved] = true
+        }.value
+    }
+
+    /**
+     * @return language with its respective search results
+     */
+    fun searchEntriesByLanguage(searchText: String): Map<String, List<SearchResult>> = transaction {
+        PronunciationTable.innerJoin(
+            LanguageRepository.LanguageTable,
+            { PronunciationTable.languageId },
+            { LanguageRepository.LanguageTable.id }
+        ).select(PronunciationTable.id, PronunciationTable.text, LanguageRepository.LanguageTable.languageName)
+            .where { TsQueryOp(PronunciationTable.searchTsv, searchText) }
+            .groupBy(
+                { it[LanguageRepository.LanguageTable.languageName] },
+                { SearchResult(it[PronunciationTable.text], it[PronunciationTable.id].value) }
+            )
+    }
+
+    fun getPronunciations(word: String, language: String): List<PronunciationResult> = transaction {
+        joinedPronunciationsTable.select(
+            PronunciationTable.s3Key,
+            PronunciationTable.createdAt,
+            PronunciationTable.text,
+            UserRepository.UserEntity.username
+        ).where { TsQueryOp(PronunciationTable.searchTsv, word) }
+            .andWhere { LanguageRepository.LanguageTable.languageName eq language }
+            .map(::PronunciationResult)
+    }
+
+    fun read(id: Int): PronunciationEntity? = transaction {
+        PronunciationTable.selectAll().where { PronunciationTable.id eq id }.singleOrNull()?.let {
+            PronunciationEntity(it)
+        }
+    }
+
+    fun findWord(word: String, language: String): Word? = transaction {
+        PronunciationTable.innerJoin(
+            LanguageRepository.LanguageTable,
+            { PronunciationTable.languageId },
+            { LanguageRepository.LanguageTable.id }
+        ).selectAll()
+            .where { PronunciationTable.text.lowerCase() eq word.lowercase() and (LanguageRepository.LanguageTable.languageName eq language) }
+            .singleOrNull()?.let { Word(it) }
+    }
+}

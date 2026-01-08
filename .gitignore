@@ -38,6 +38,7 @@ out/
 
 uploads/
 application.conf
+docs/
 
 ### frontend files
 /src/main/resources/gui

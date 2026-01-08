@@ -1,0 +1,32 @@
+package com.saban.languages
+
+import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.koin.core.component.KoinComponent
+
+class LanguageRepository : KoinComponent {
+
+    object LanguageTable : IntIdTable("saban_language") {
+        val languageName = text("language_name")
+        val languageCode = text("language_code")
+        val rtl = bool("rtl") //right to left language
+    }
+
+    private val languageMap: Map<String, Language> = transaction {
+        LanguageTable.selectAll()
+            .associate { it[LanguageTable.languageName] to Language(it) }
+    }
+
+    fun getLanguages(): List<Language> {
+        return languageMap.values.toList()
+    }
+
+    fun read(language: String): Language? {
+        return languageMap[language] ?: transaction {
+            LanguageTable.selectAll().where { LanguageTable.languageName eq language }
+                .singleOrNull()?.let { Language(it) }
+        }
+    }
+}

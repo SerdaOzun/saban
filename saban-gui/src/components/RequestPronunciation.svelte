@@ -24,7 +24,7 @@
 	async function requestWord() {
 		if (!word || !selectedLanguage) return;
 
-		const resp = await fetch(`${backendUrl}/gui/request`, {
+		const resp = await fetch(`${backendUrl}/gui/request/save`, {
 			method: 'POST',
 			credentials: 'include',
 			headers: {
