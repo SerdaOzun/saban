@@ -42,8 +42,9 @@
 		stopRecording();
 	});
 
-    //todo vorheriges recording muss überschrieben werden bei neuem
 	function startRecording() {
+		audioBlob = null;
+    	audioUrl = null;
 		recording = true;
 		recorder.start();
 	}

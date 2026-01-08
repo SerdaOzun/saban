@@ -29,9 +29,11 @@
 
 	onDestroy(() => {
 		stopRecording();
-	})
+	});
 
 	function startRecording() {
+		audioBlob = null;
+    	audioUrl = null;
 		recording = true;
 		recorder.start();
 	}
