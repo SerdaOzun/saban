@@ -4,7 +4,6 @@ import org.gradle.kotlin.dsl.named
 
 val exposed_version: String by project
 val koin_version: String by project
-val kotlin_version: String by project
 val logback_version: String by project
 val prometheus_version: String by project
 val flyway_version: String by project
@@ -68,8 +67,9 @@ dependencies {
     implementation(awssdk.services.s3)
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.0")
 
+    testImplementation("org.testng:testng:7.9.0")
+    testImplementation("io.kotest:kotest-assertions-core:6.1.11")
     testImplementation("io.ktor:ktor-server-test-host")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }
 
 node {
@@ -109,4 +109,8 @@ tasks {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         dependsOn(copyTask)
     }
+}
+
+tasks.named<Test>("test") {
+    useTestNG()
 }
