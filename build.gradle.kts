@@ -9,9 +9,9 @@ val prometheus_version: String by project
 val flyway_version: String by project
 
 plugins {
-    kotlin("jvm") version "2.3.20"
-    id("io.ktor.plugin") version "3.4.2"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.3.20"
+    kotlin("jvm") version "2.3.21"
+    id("io.ktor.plugin") version "3.4.3"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.3.21"
     id("com.github.node-gradle.node") version "7.1.0"
 }
 
@@ -19,7 +19,7 @@ group = "com.saban"
 version = "0.0.1"
 
 application {
-    mainClass.set("io.ktor.server.netty.EngineMain")
+    mainClass.set("com.saban.ApplicationKt")
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
@@ -95,7 +95,7 @@ tasks {
 
     val copyTask = register<Copy>("copyFrontend") {
         dependsOn(cleanTask, buildTask)
-        from("gui/.output/public")
+        from("frontend/build")
         into("src/main/resources/gui")
         onlyIf { buildingJar }
     }
@@ -108,6 +108,10 @@ tasks {
         mergeServiceFiles()
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         dependsOn(copyTask)
+
+        from(sourceSets.main.get().resources) {
+            into("")
+        }
     }
 }
 
