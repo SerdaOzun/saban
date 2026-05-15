@@ -41,4 +41,5 @@ application.conf
 docs/
 
 ### frontend files
-/src/main/resources/gui
+/src/main/resources/gui!/frontend/.env.development
+gui/

@@ -76,7 +76,7 @@ node {
     version = "24.12.0" // Set the Node.js version you want
     npmVersion = "11.6.2" // Optionally specify an npm version
     download = false // Automatically download Node.js
-    nodeProjectDir = file("${projectDir}/saban-gui") // Set the working directory to the child directory
+    nodeProjectDir = file("${projectDir}/frontend") // Set the working directory to the child directory
 }
 
 tasks {
@@ -88,7 +88,7 @@ tasks {
     }
 
     val buildTask by register<NpmTask>("npmBuild") {
-        args = listOf("run", "generate")
+        args = listOf("run", "build")
         dependsOn("npmInstall") // Ensure dependencies are installed before building
         onlyIf { buildingJar }
     }
