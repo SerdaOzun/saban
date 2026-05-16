@@ -11,6 +11,7 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import com.saban.languages.LanguageService
 import com.saban.plugins.S3Config
 import com.saban.plugins.SabanConfig
+import kotlinx.coroutines.runBlocking
 import org.koin.core.component.KoinComponent
 import java.io.File
 import java.time.Duration
@@ -28,6 +29,12 @@ class S3Service(
         .expireAfterWrite(Duration.ofHours(2))
         .build()
 
+    init {
+        runBlocking {
+            createLanguageBuckets()
+        }
+    }
+
     suspend fun listBucketNames(): List<String>? {
         return client.listBuckets().buckets?.mapNotNull { it.name } ?: emptyList()
     }
@@ -35,7 +42,7 @@ class S3Service(
     /**
      * Create buckets for languages that don't have one yet
      */
-    suspend fun createLanguageBuckets() {
+    private suspend fun createLanguageBuckets() {
         languageService.getLanguages()
             .filter { lang ->
                 runCatching {

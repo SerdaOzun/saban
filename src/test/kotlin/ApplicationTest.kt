@@ -1,10 +1,10 @@
 package com.saban
 
+import io.kotest.matchers.shouldBe
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import org.testng.annotations.Test
 
 class ApplicationTest {
 
@@ -13,9 +13,7 @@ class ApplicationTest {
         application {
             module()
         }
-        client.get("/").apply {
-            assertEquals(HttpStatusCode.OK, status)
-        }
+        client.get("/").status shouldBe HttpStatusCode.OK
     }
 
 }
