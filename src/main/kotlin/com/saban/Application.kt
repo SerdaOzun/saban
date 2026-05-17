@@ -13,6 +13,8 @@ import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.koin.ktor.ext.inject
+import kotlin.getValue
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
@@ -23,7 +25,9 @@ fun Application.module() {
     configureSerialization()
     configureDependencyInjection()
     configureMigrations()
-    configureDatabases()
+
+    val sabanConfig: SabanConfig by inject()
+    configureDatabases(sabanConfig)
     configureSecurity()
     configureThreadLocalInterceptor()
     configureHTTP()
