@@ -87,6 +87,7 @@ class PronunciationRepository {
             UserRepository.UserEntity.username
         ).where { TsQueryOp(PronunciationTable.searchTsv, word) }
             .andWhere { LanguageRepository.LanguageTable.languageName eq language }
+            .andWhere { PronunciationTable.isApproved eq true }
             .map(::PronunciationResult)
     }
 
@@ -103,6 +104,6 @@ class PronunciationRepository {
             { LanguageRepository.LanguageTable.id }
         ).selectAll()
             .where { PronunciationTable.text.lowerCase() eq word.lowercase() and (LanguageRepository.LanguageTable.languageName eq language) }
-            .singleOrNull()?.let { Word(it) }
+            .firstOrNull()?.let { Word(it) }
     }
 }
