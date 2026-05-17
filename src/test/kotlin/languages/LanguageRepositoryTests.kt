@@ -3,6 +3,7 @@ package com.saban.languages
 import com.saban.BaseTest
 import com.saban.languages.LanguageRepository.LanguageTable
 import com.saban.module
+import com.saban.plugins.SabanConfig
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.nulls.shouldBeNull
@@ -13,39 +14,22 @@ import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.koin.core.component.inject
+import org.testng.annotations.BeforeClass
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 
 @Test
 class LanguageRepositoryTests : BaseTest() {
 
-    private val repository: LanguageRepository by inject()
+    private val repository by lazy { LanguageRepository() }
 
-    @BeforeMethod
-    fun setup() = testApplication {
-        application { module() }
-        startApplication()
-
-        transaction {
-            listOf(
-                Language(-1, "german", "de", false),
-                Language(-1, "french", "fr", false),
-                Language(-1, "arabic", "ar", true),
-            ).forEach { lang ->
-                LanguageTable.insertIgnore {
-                    it[languageName] = lang.name
-                    it[languageCode] = lang.code
-                    it[rtl] = lang.rtl
-                }
-            }
-        }
+    override fun beforeClass() {
+        super.beforeClass()
+        createLanguages()
     }
 
     @Test
-    fun `getLanguages returns all languages`() = testApplication {
-        application { module() }
-        startApplication()
-
+    fun `getLanguages returns all languages`() {
         transaction {
             try {
                 val languages = repository.getLanguages()
@@ -65,10 +49,7 @@ class LanguageRepositoryTests : BaseTest() {
     }
 
     @Test
-    fun `read returns existing language by name`() = testApplication {
-        application { module() }
-        startApplication()
-
+    fun `read returns existing language by name`() {
         transaction {
             try {
                 repository.read("english")?.apply {
@@ -91,10 +72,7 @@ class LanguageRepositoryTests : BaseTest() {
     }
 
     @Test
-    fun `read returns null for non-existent language`() = testApplication {
-        application { module() }
-        startApplication()
-
+    fun `read returns null for non-existent language`() {
         transaction {
             try {
                 repository.read("spanish").shouldBeNull()
@@ -106,10 +84,7 @@ class LanguageRepositoryTests : BaseTest() {
     }
 
     @Test
-    fun `read with case sensitivity`() = testApplication {
-        application { module() }
-        startApplication()
-
+    fun `read with case sensitivity`() {
         transaction {
             try {
                 // Repository should be case-sensitive as per current implementation
@@ -122,10 +97,7 @@ class LanguageRepositoryTests : BaseTest() {
     }
 
     @Test
-    fun `test read query when language not in cache`() = testApplication {
-        application { module() }
-        startApplication()
-
+    fun `read query when language not in cache`() {
         transaction {
             try {
                 repository.read("Spanish").shouldBeNull()
