@@ -2,6 +2,8 @@ package com.saban.util
 
 
 import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.postgresql.util.PGobject
 
 /**
@@ -49,4 +51,14 @@ class TsQueryOp(val tsVectorColumn: Expression<String>, val query: String) : Op<
 fun sanitizeQuery(query: String): String {
     // Replace spaces with '&' for logical AND (to match all terms)
     return query.trim().replace(Regex("\\s+"), " & ")
+}
+
+fun <R> rollbackTransaction(fn: JdbcTransaction.() -> R) {
+    transaction {
+        try {
+            fn()
+        } finally {
+            rollback()
+        }
+    }
 }

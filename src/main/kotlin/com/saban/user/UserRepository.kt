@@ -4,6 +4,7 @@ import com.saban.util.SabanResult
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.javatime.timestampWithTimeZone
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -66,5 +67,9 @@ class UserRepository : KoinComponent {
         UserEntity.select(UserEntity.country).where { UserEntity.id eq userId }.singleOrNull()?.let {
             it[UserEntity.country]
         }
+    }
+
+    fun deleteUser(userId: Int) = transaction {
+        UserEntity.deleteWhere { UserEntity.id eq userId }
     }
 }

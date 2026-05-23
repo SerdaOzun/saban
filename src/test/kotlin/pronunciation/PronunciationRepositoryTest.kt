@@ -2,8 +2,7 @@ package com.saban.pronunciation
 
 import com.saban.BaseTest
 import com.saban.languages.LanguageRepository
-import com.saban.user.RegistrationRequest
-import com.saban.user.UserRepository
+import com.saban.util.rollbackTransaction
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.date.shouldBeAfter
 import io.kotest.matchers.date.shouldBeBefore
@@ -26,7 +25,6 @@ class PronunciationRepositoryTests : BaseTest() {
 
     private val pronunciationRepository by lazy { PronunciationRepository() }
     private val languageRepository by lazy { LanguageRepository() }
-    private val userRepository by lazy { UserRepository() }
 
     private var testUserId: Int = -1
     private var germanLangId: Int = -1
@@ -36,15 +34,7 @@ class PronunciationRepositoryTests : BaseTest() {
         super.beforeClass()
 
         transaction {
-            // Create test user
-            testUserId = userRepository.saveUser(
-                RegistrationRequest(
-                    username = "testuser",
-                    email = "test@example.com",
-                    password = "password123"
-                )
-            ).value
-
+            testUserId = createTestUser()
             createLanguages()
             germanLangId = languageRepository.read("german")!!.id
             arabicLangId = languageRepository.read("arabic")!!.id
@@ -71,85 +61,73 @@ class PronunciationRepositoryTests : BaseTest() {
 
     @Test
     fun `savePronunciation creates new pronunciation record`() {
-        transaction {
-            try {
-                val newS3Key = "s3://pronunciations/new_word_001.mp3"
-                val pronunciationId = pronunciationRepository.savePronunciation(
-                    userId = testUserId,
-                    word = "kotlin",
-                    langId = germanLangId,
-                    fileKey = newS3Key
-                )
+        rollbackTransaction {
+            val newS3Key = "s3://pronunciations/new_word_001.mp3"
+            val pronunciationId = pronunciationRepository.savePronunciation(
+                userId = testUserId,
+                word = "kotlin",
+                langId = germanLangId,
+                fileKey = newS3Key
+            )
 
-                pronunciationId shouldNotBe -1
+            pronunciationId shouldNotBe -1
 
-                val saved = pronunciationRepository.read(pronunciationId)
-                saved.shouldNotBeNull()
-                saved.text shouldBe "kotlin"
-                saved.publicUrl shouldBe newS3Key
-                saved.userId shouldBe testUserId
-                saved.languageId shouldBe germanLangId
-                saved.isApproved shouldBe true
-                saved.createdAt.shouldNotBeNull()
-            } finally {
-                rollback()
-            }
+            val saved = pronunciationRepository.read(pronunciationId)
+            saved.shouldNotBeNull()
+            saved.text shouldBe "kotlin"
+            saved.publicUrl shouldBe newS3Key
+            saved.userId shouldBe testUserId
+            saved.languageId shouldBe germanLangId
+            saved.isApproved shouldBe true
+            saved.createdAt.shouldNotBeNull()
         }
     }
 
     @Test
     fun `savePronunciation creates record with current timestamp`() {
-        transaction {
-            try {
-                val beforeInsert = OffsetDateTime.now(ZoneOffset.UTC)
-                val pronunciationId = pronunciationRepository.savePronunciation(
-                    userId = testUserId,
-                    word = "timestamp-test",
-                    langId = germanLangId,
-                    fileKey = "s3://test/timestamp.mp3"
-                )
-                val afterInsert = OffsetDateTime.now(ZoneOffset.UTC)
+        rollbackTransaction {
+            val beforeInsert = OffsetDateTime.now(ZoneOffset.UTC)
+            val pronunciationId = pronunciationRepository.savePronunciation(
+                userId = testUserId,
+                word = "timestamp-test",
+                langId = germanLangId,
+                fileKey = "s3://test/timestamp.mp3"
+            )
+            val afterInsert = OffsetDateTime.now(ZoneOffset.UTC)
 
-                val saved = pronunciationRepository.read(pronunciationId)!!
+            val saved = pronunciationRepository.read(pronunciationId)!!
 
-                saved.createdAt shouldBeAfter beforeInsert
-                saved.createdAt shouldBeBefore afterInsert
-                saved.createdAt shouldNotBe null
-            } finally {
-                rollback()
-            }
+            saved.createdAt shouldBeAfter beforeInsert
+            saved.createdAt shouldBeBefore afterInsert
+            saved.createdAt shouldNotBe null
         }
     }
 
     @Test
     fun `searchEntriesByLanguage returns grouped search results`() {
-        transaction {
-            try {
-                pronunciationRepository.savePronunciation(
-                    userId = testUserId,
-                    word = "hallo",
-                    langId = germanLangId,
-                    fileKey = "s3://test/timestamp.mp3"
-                )
+        rollbackTransaction {
+            pronunciationRepository.savePronunciation(
+                userId = testUserId,
+                word = "hallo",
+                langId = germanLangId,
+                fileKey = "s3://test/timestamp.mp3"
+            )
 
-                val results = pronunciationRepository.searchEntriesByLanguage("hallo")
+            val results = pronunciationRepository.searchEntriesByLanguage("hallo")
 
-                results shouldNotBe null
-                results.containsKey("german") shouldBe true
+            results shouldNotBe null
+            results.containsKey("german") shouldBe true
 
-                val germanResults = results["german"]
-                germanResults.shouldNotBeNull()
-                germanResults[0].word shouldBe "hallo"
-                germanResults[0].wordId shouldBeGreaterThan 0
-            } finally {
-                rollback()
-            }
+            val germanResults = results["german"]
+            germanResults.shouldNotBeNull()
+            germanResults[0].word shouldBe "hallo"
+            germanResults[0].wordId shouldBeGreaterThan 0
         }
     }
 
     @Test
     fun `searchEntriesByLanguage returns empty map for no matches`() {
-        transaction {
+        rollbackTransaction {
             val results = pronunciationRepository.searchEntriesByLanguage("nonexistentwordxyz")
 
             results shouldBe emptyMap()
@@ -159,25 +137,21 @@ class PronunciationRepositoryTests : BaseTest() {
     @Test
     @Ignore("Prüfen ob gewollt ist, dass 'hall' nicht gefunden wird")
     fun `searchEntriesByLanguage handles partial matches`() {
-        transaction {
-            val results = pronunciationRepository.searchEntriesByLanguage("hall")
+        val results = pronunciationRepository.searchEntriesByLanguage("hall")
 
-            results shouldNotBe null
-            results["german"]?.first()?.word shouldBe "hallo"
-        }
+        results shouldNotBe null
+        results["german"]?.first()?.word shouldBe "hallo"
     }
 
     @Test
     fun `getPronunciations returns list for specific word and language`() {
-        transaction {
-            val results = pronunciationRepository.getPronunciations("hallo", "german")
+        val results = pronunciationRepository.getPronunciations("hallo", "german")
 
-            results[0].username shouldBe "testuser"
-            results[0].word shouldBe "hallo"
-            results[0].s3key shouldBe "s3://pronunciations/hello_123.mp3"
-            results[0].createdAt.shouldNotBeNull()
-            results[0].url shouldBe "" // Default empty string
-        }
+        results[0].username shouldBe "testuser"
+        results[0].word shouldBe "hallo"
+        results[0].s3key shouldBe "s3://pronunciations/hello_123.mp3"
+        results[0].createdAt.shouldNotBeNull()
+        results[0].url shouldBe "" // Default empty string
     }
 
     @Test
@@ -188,75 +162,68 @@ class PronunciationRepositoryTests : BaseTest() {
 
     @Test
     fun `getPronunciations returns empty list for wrong language`() {
-        transaction {
-            val results = pronunciationRepository.getPronunciations("hallo", "arabic")
-            results shouldBe emptyList()
-        }
+        val results = pronunciationRepository.getPronunciations("hallo", "arabic")
+        results shouldBe emptyList()
     }
 
     @Test
     fun `getPronunciations handles multiple pronunciations of same word`() {
-        transaction {
-            try {
-                PronunciationRepository.PronunciationTable.insert {
-                    it[text] = "hallo"
-                    it[languageId] = germanLangId
-                    it[userId] = testUserId
-                    it[s3Key] = "s3://hello_first.mp3"
-                    it[createdAt] = OffsetDateTime.now(ZoneOffset.UTC)
-                    it[isApproved] = true
-                }
-
-                // Add second pronunciation of "hallo"
-                val secondS3Key = "s3://pronunciations/hello_second.mp3"
-                PronunciationRepository.PronunciationTable.insert {
-                    it[text] = "hallo"
-                    it[languageId] = germanLangId
-                    it[userId] = testUserId
-                    it[s3Key] = secondS3Key
-                    it[createdAt] = OffsetDateTime.now(ZoneOffset.UTC)
-                    it[isApproved] = true
-                }
-
-                val results = pronunciationRepository.getPronunciations("hallo", "german")
-                results.map { it.s3key }.first() shouldBe "s3://pronunciations/hello_123.mp3"
-            } finally {
-                rollback()
+        rollbackTransaction {
+            PronunciationRepository.PronunciationTable.insert {
+                it[text] = "hallo"
+                it[languageId] = germanLangId
+                it[userId] = testUserId
+                it[s3Key] = "s3://hello_first.mp3"
+                it[createdAt] = OffsetDateTime.now(ZoneOffset.UTC)
+                it[isApproved] = true
             }
+
+            // Add second pronunciation of "hallo"
+            val secondS3Key = "s3://pronunciations/hello_second.mp3"
+            PronunciationRepository.PronunciationTable.insert {
+                it[text] = "hallo"
+                it[languageId] = germanLangId
+                it[userId] = testUserId
+                it[s3Key] = secondS3Key
+                it[createdAt] = OffsetDateTime.now(ZoneOffset.UTC)
+                it[isApproved] = true
+            }
+
+            val results = pronunciationRepository.getPronunciations("hallo", "german")
+            results.map { it.s3key }.first() shouldBe "s3://pronunciations/hello_123.mp3"
         }
     }
 
     @Test
     fun `read returns correct pronunciation by id`() {
-        transaction {
+        rollbackTransaction {
             val firstId = PronunciationRepository.PronunciationTable.selectAll()
                 .where { PronunciationRepository.PronunciationTable.text eq "hallo" }
                 .first()[PronunciationRepository.PronunciationTable.id].value
 
-            val result = pronunciationRepository.read(firstId)!!
-            result.id shouldBe firstId
-            result.text shouldBe "hallo"
-            result.publicUrl shouldBe "s3://pronunciations/hello_123.mp3"
-            result.languageId shouldBe germanLangId
-            result.isApproved shouldBe true
+            pronunciationRepository.read(firstId)!!.apply {
+                id shouldBe firstId
+                text shouldBe "hallo"
+                publicUrl shouldBe "s3://pronunciations/hello_123.mp3"
+                languageId shouldBe germanLangId
+                isApproved shouldBe true
+            }
         }
     }
 
     @Test
     fun `read returns null for non-existent id`() {
-        transaction {
-            val result = pronunciationRepository.read(999999)
-            result.shouldBeNull()
-        }
+        val result = pronunciationRepository.read(999999)
+        result.shouldBeNull()
     }
 
     @Test
     fun `findWord returns Word object when word exists in language`() {
-        val word = pronunciationRepository.findWord("hallo", "german")
-        word.shouldNotBeNull()
-        word.word shouldBe "hallo"
-        word.language shouldBe "german"
-        word.wordId shouldBeGreaterThan 0
+        pronunciationRepository.findWord("hallo", "german")!!.apply {
+            word shouldBe "hallo"
+            language shouldBe "german"
+            wordId shouldBeGreaterThan 0
+        }
     }
 
     @Test
@@ -281,10 +248,8 @@ class PronunciationRepositoryTests : BaseTest() {
 
     @Test
     fun `findWord returns null for non-existent word`() {
-
         val result = pronunciationRepository.findWord("nonexistentword123", "german")
         result.shouldBeNull()
-
     }
 
     @Test
@@ -296,52 +261,44 @@ class PronunciationRepositoryTests : BaseTest() {
 
     @Test
     fun `getPronunciations respects isApproved flag`() {
-        transaction {
-            try {
-                // Insert unapproved pronunciation
-                PronunciationRepository.PronunciationTable.insert {
-                    it[text] = "unapproved"
-                    it[languageId] = germanLangId
-                    it[userId] = testUserId
-                    it[s3Key] = "s3://pronunciations/unapproved.mp3"
-                    it[createdAt] = OffsetDateTime.now(ZoneOffset.UTC)
-                    it[isApproved] = false
-                }
-
-                val results = pronunciationRepository.getPronunciations("unapproved", "german")
-                results shouldHaveSize 0
-            } finally {
-                rollback()
+        rollbackTransaction {
+            // Insert unapproved pronunciation
+            PronunciationRepository.PronunciationTable.insert {
+                it[text] = "unapproved"
+                it[languageId] = germanLangId
+                it[userId] = testUserId
+                it[s3Key] = "s3://pronunciations/unapproved.mp3"
+                it[createdAt] = OffsetDateTime.now(ZoneOffset.UTC)
+                it[isApproved] = false
             }
+
+            val results = pronunciationRepository.getPronunciations("unapproved", "german")
+            results shouldHaveSize 0
         }
     }
 
     @Test
     fun `savePronunciation handles duplicate entries`() {
-        transaction {
-            try {
-                val s3Key = "s3://pronunciations/duplicate.mp3"
-                val firstId = pronunciationRepository.savePronunciation(
-                    userId = testUserId,
-                    word = "duplicate",
-                    langId = germanLangId,
-                    fileKey = s3Key
-                )
+        rollbackTransaction {
+            val s3Key = "s3://pronunciations/duplicate.mp3"
+            val firstId = pronunciationRepository.savePronunciation(
+                userId = testUserId,
+                word = "duplicate",
+                langId = germanLangId,
+                fileKey = s3Key
+            )
 
-                val secondId = pronunciationRepository.savePronunciation(
-                    userId = testUserId,
-                    word = "duplicate",
-                    langId = germanLangId,
-                    fileKey = s3Key
-                )
+            val secondId = pronunciationRepository.savePronunciation(
+                userId = testUserId,
+                word = "duplicate",
+                langId = germanLangId,
+                fileKey = s3Key
+            )
 
-                firstId shouldNotBe secondId
+            firstId shouldNotBe secondId
 
-                val pronunciations = pronunciationRepository.getPronunciations("duplicate", "german")
-                pronunciations shouldHaveSize 2
-            } finally {
-                rollback()
-            }
+            val pronunciations = pronunciationRepository.getPronunciations("duplicate", "german")
+            pronunciations shouldHaveSize 2
         }
     }
 }
