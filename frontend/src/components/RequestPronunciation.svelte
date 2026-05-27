@@ -44,6 +44,11 @@
 			toast.success('Request has been saved', {
 				description: ''
 			});
+		} else {
+			toast.error('Could not save request', {
+				description: resp.statusText
+			});
+
 		}
 	}
 </script>

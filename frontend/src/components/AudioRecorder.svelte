@@ -94,7 +94,7 @@
 				<div class="flex flex-col space-y-1.5">
 					<button
 						onclick={recording ? stopRecording : startRecording}
-						class="px-4 py-2 {recording ? 'bg-red-500' : 'bg-blue-500'} rounded-lg text-white"
+						class="px-4 py-2 {recording ? 'bg-red-500' : 'bg-blue-500'} text-white"
 					>
 						{recording ? 'Stop' : 'Record'}
 					</button>
