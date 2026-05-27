@@ -105,7 +105,7 @@ class S3Service(
 
         return S3Client.Companion {
             region = "us-east-1"
-            endpointUrl = Url.Companion.parse("${config.protocol}://${config.endpoint}")
+            endpointUrl = Url.parse("${config.protocol}://${config.endpoint}")
             forcePathStyle = true
             credentialsProvider = credentials
         }
