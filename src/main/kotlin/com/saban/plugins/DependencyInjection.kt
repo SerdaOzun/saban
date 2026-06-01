@@ -11,6 +11,7 @@ import com.saban.search.SearchService
 import com.saban.s3.S3Service
 import com.saban.user.AuthenticationService
 import com.saban.user.SessionRepository
+import com.saban.user.UserLanguageRepository
 import com.saban.user.UserRepository
 import com.saban.voting.VotingRepository
 import io.ktor.server.application.*
@@ -32,6 +33,7 @@ fun Application.configureDependencyInjection() {
             singleOf(::LanguageRepository)
             singleOf(::PronunciationRepository)
             singleOf(::UserRepository)
+            singleOf(::UserLanguageRepository)
             singleOf(::VotingRepository)
             singleOf(::AuthenticationService)
             singleOf(::S3Service)

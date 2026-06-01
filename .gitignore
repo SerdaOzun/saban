@@ -42,4 +42,4 @@ docs/
 
 ### frontend files
 /src/main/resources/gui!/frontend/.env.development
-gui/
+/src/main/resources/gui

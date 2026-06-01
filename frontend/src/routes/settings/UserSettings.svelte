@@ -3,16 +3,19 @@
   import { loggedInUser } from "../../data/stores/UserStore";
   import SearchableCombobox from "../../components/SearchableCombobox.svelte";
   import { countries } from "../../util/countries";
-  import { backendUrl } from "../../util/SabanConfig";
   import { onMount } from "svelte";
   import { toast } from "svelte-sonner";
   import { Toaster } from "@/components/ui/sonner";
+  import { backendUrl } from "../../util/GuiConfig";
+  import SpokenLanguages from "./SpokenLanguages.svelte";
 
   let oldCountry: string | null = $state(null);
   let selectedCountry: string | null = $state(null);
+  let spokenLanguages: Array<string> = $state([]);
 
   interface SettingsResponse {
     country: string | null;
+    spokenLanguages: Array<string>;
   }
 
   onMount(() => {
@@ -34,6 +37,7 @@
       let settings: SettingsResponse = await resp.json();
       selectedCountry = settings.country;
       oldCountry = settings.country;
+      spokenLanguages = settings.spokenLanguages;
     }
   }
 
@@ -57,15 +61,15 @@
   }
 </script>
 
-<div class="flex flex-col gap-2 p-2">
+<div class="flex flex-col gap-2">
   {#if $loggedInUser}
     <Label class="text-2xl">Hello {$loggedInUser.username}</Label>
   {/if}
   <div class="flex w-fit flex-wrap place-items-center gap-2">
     <Label class="text-lg">Country:</Label>
-    <SearchableCombobox options={countries} bind:selected={selectedCountry}
-    ></SearchableCombobox>
+    <SearchableCombobox options={countries} bind:selected={selectedCountry} />
   </div>
+  <SpokenLanguages {spokenLanguages}/>
 </div>
 
 <Toaster />

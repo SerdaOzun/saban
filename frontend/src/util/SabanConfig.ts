@@ -1,1 +1,0 @@
-export let backendUrl: string = import.meta.env.VITE_BACKEND_URL;

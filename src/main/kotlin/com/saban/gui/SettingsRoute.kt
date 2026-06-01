@@ -1,9 +1,11 @@
 package com.saban.gui
 
+import com.saban.gui.model.SpokenLanguages
 import com.saban.plugins.getUserSession
 import com.saban.util.countries
 import io.ktor.http.*
 import io.ktor.server.auth.*
+import io.ktor.server.request.receive
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
@@ -30,6 +32,19 @@ fun Route.settingsRoute() {
                     call.respond(HttpStatusCode.OK)
                 } catch (e: Exception) {
                     logger.error("Failed to update country", e)
+                    call.respond(HttpStatusCode.InternalServerError)
+                }
+            }
+
+            post("/spokenLanguages") {
+                val userId = call.getUserSession()?.userId ?: return@post call.respond(HttpStatusCode.Forbidden)
+
+                try {
+                    val languages = call.receive<SpokenLanguages>().languages
+                    settingsService.updateSpokenLanguages(userId, languages.toSet())
+                    call.respond(HttpStatusCode.OK)
+                } catch (e: Exception) {
+                    logger.error("Failed to update spoken languages", e)
                     call.respond(HttpStatusCode.InternalServerError)
                 }
             }
