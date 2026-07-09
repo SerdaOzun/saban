@@ -254,7 +254,7 @@ class PronunciationRepositoryTests : BaseTest() {
 
     @Test
     fun `searchEntriesByLanguage handles Arabic RTL text`() {
-        val results = pronunciationRepository.searchEntriesByLanguage("مرحبا")!!
+        val results = pronunciationRepository.searchEntriesByLanguage("مرحبا")
         results.containsKey("arabic") shouldBe true
         results["arabic"]?.first()?.word shouldBe "مرحبا"
     }

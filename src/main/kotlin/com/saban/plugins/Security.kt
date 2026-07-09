@@ -19,7 +19,7 @@ fun Application.configureSecurity() {
     authenticationService.createAdminUser()
 
     install(Sessions) {
-        val secretSignKey = hex("6819b57a326945c1968f45236589")
+        val secretSignKey = "6819b57a326945c1968f45236589".hexToByteArray()
         cookie<UserSession>("user_session", DbSessionStorage()) {
             transform(SessionTransportTransformerMessageAuthentication(secretSignKey))
             cookie.path = "/"

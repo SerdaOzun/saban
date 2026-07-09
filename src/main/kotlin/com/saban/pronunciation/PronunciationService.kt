@@ -68,7 +68,7 @@ class PronunciationService(
 
                 else -> {}
             }
-            part.dispose()
+            part.release()
         }
 
         return Pair(fileName, audioFile)
