@@ -15,6 +15,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.testng.annotations.BeforeClass
 import org.testng.annotations.Ignore
 import org.testng.annotations.Test
 import java.time.OffsetDateTime
@@ -30,6 +31,7 @@ class PronunciationRepositoryTests : BaseTest() {
     private var germanLangId: Int = -1
     private var arabicLangId: Int = -1
 
+    @BeforeClass
     override fun beforeClass() {
         super.beforeClass()
 

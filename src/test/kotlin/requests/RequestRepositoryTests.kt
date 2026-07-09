@@ -15,6 +15,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.testng.annotations.BeforeClass
 import org.testng.annotations.Test
 import java.time.OffsetDateTime
 import kotlin.getValue
@@ -29,6 +30,7 @@ class RequestRepositoryTests : BaseTest() {
     private var germanLanguageId = -1
     private var arabicLanguageId = -1
 
+    @BeforeClass
     override fun beforeClass() {
         super.beforeClass()
         createLanguages()

@@ -10,6 +10,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.testng.annotations.BeforeClass
 import org.testng.annotations.Test
 
 @Test
@@ -17,6 +18,7 @@ class LanguageRepositoryTests : BaseTest() {
 
     private val repository by lazy { LanguageRepository() }
 
+    @BeforeClass
     override fun beforeClass() {
         super.beforeClass()
         createLanguages()
