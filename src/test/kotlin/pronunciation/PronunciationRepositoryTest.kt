@@ -11,6 +11,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldStartWith
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -149,7 +150,7 @@ class PronunciationRepositoryTests : BaseTest() {
     fun `getPronunciations returns list for specific word and language`() {
         val results = pronunciationRepository.getPronunciations("hallo", "german")
 
-        results[0].username shouldBe "testuser"
+        results[0].username shouldStartWith "testuser"
         results[0].word shouldBe "hallo"
         results[0].s3key shouldBe "s3://pronunciations/hello_123.mp3"
         results[0].createdAt.shouldNotBeNull()

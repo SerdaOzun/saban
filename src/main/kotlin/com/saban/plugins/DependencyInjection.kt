@@ -13,6 +13,8 @@ import com.saban.user.AuthenticationService
 import com.saban.user.SessionRepository
 import com.saban.user.UserLanguageRepository
 import com.saban.user.UserRepository
+import com.saban.user.scoring.UserScoreService
+import com.saban.user.scoring.UserScoringRepository
 import com.saban.voting.VotingRepository
 import io.ktor.server.application.*
 import org.koin.core.component.KoinComponent
@@ -43,6 +45,8 @@ fun Application.configureDependencyInjection() {
             singleOf(::LanguageService)
             singleOf(::SearchService)
             singleOf(::SettingsService)
+            singleOf(::UserScoringRepository)
+            singleOf(::UserScoreService)
         })
     }
 }

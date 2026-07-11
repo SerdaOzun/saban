@@ -11,12 +11,13 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.koin.core.component.KoinComponent
 import org.testng.annotations.AfterClass
 import org.testng.annotations.BeforeClass
+import kotlin.random.Random
 
 open class BaseTest : KoinComponent {
 
     val userRepository by lazy { UserRepository() }
 
-    private var testUserId = -1
+    private var testUserIds = mutableListOf<Int>()
 
     @BeforeClass
     open fun beforeClass() {
@@ -25,8 +26,8 @@ open class BaseTest : KoinComponent {
 
     @AfterClass
     open fun afterClass() {
-        if (testUserId != -1) {
-            userRepository.deleteUser(testUserId)
+        testUserIds.forEach {
+            userRepository.deleteUser(it)
         }
     }
 
@@ -49,11 +50,11 @@ open class BaseTest : KoinComponent {
     fun createTestUser() = transaction {
         userRepository.saveUser(
             RegistrationRequest(
-                username = "testuser",
-                email = "test@example.com",
+                username = "testuser${Random.nextInt()}",
+                email = "test${Random.nextInt()}@example.com",
                 password = "password123"
             )
-        ).value.also { testUserId = it }
+        ).value.also { testUserIds.add(it) }
     }
 
 }

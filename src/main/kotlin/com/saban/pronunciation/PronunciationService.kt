@@ -2,10 +2,12 @@ package com.saban.pronunciation
 
 import com.saban.languages.LanguageService
 import com.saban.pronunciation.model.PronunciationResult
-import com.saban.request.RequestEntity
 import com.saban.request.RequestService
 import com.saban.search.SearchResult
 import com.saban.s3.S3Service
+import com.saban.user.scoring.CreateUserScore
+import com.saban.user.scoring.ScorePoints
+import com.saban.user.scoring.UserScoreService
 import com.saban.util.MissingLanguageException
 import com.saban.util.S3UploadException
 import io.ktor.http.content.*
@@ -18,6 +20,7 @@ import java.io.File
 class PronunciationService(
     private val pronunciationRepo: PronunciationRepository,
     private val languageService: LanguageService,
+    private val userScoreService: UserScoreService,
     private val requestService: RequestService,
     private val s3Service: S3Service
 ) : KoinComponent {
@@ -48,7 +51,10 @@ class PronunciationService(
             ?: throw S3UploadException("Failed to upload pronunciation to S3 bucket")
         val langId = languageService.findLanguage(language)?.id
             ?: throw MissingLanguageException("Language '$language' not found")
-        pronunciationRepo.savePronunciation(userId, word, langId, fileKey)
+        val pronunciationId = pronunciationRepo.savePronunciation(userId, word, langId, fileKey)
+        userScoreService.saveUserScore(
+            CreateUserScore(userId, pronunciationId, ScorePoints.PRONUNCIATION)
+        )
     }
 
     suspend fun extractFileAndFilename(multipart: MultiPartData, word: String, username: String): Pair<String, File> {

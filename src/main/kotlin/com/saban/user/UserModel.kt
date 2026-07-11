@@ -4,6 +4,8 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.ResultRow
 import java.time.OffsetDateTime
 
+typealias UserId = Int
+
 //android/util/Patterns.java EMAIL_ADDRESS pattern
 private val emailAddressRegex = Regex(
     "[a-zA-Z0-9\\+\\.\\_\\%\\-\\+]{1,256}" +
@@ -16,7 +18,7 @@ private val emailAddressRegex = Regex(
 )
 
 data class UserModel(
-    val id: Int,
+    val id: UserId,
     val username: String,
     val passwordHash: String,
     val email: String,

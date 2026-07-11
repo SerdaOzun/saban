@@ -13,6 +13,7 @@ import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.testng.annotations.BeforeClass
@@ -57,7 +58,7 @@ class RequestRepositoryTests : BaseTest() {
                 text shouldBe word
                 language shouldBe "german"
                 languageId shouldBe germanLanguageId
-                requestedBy shouldBe "testuser"
+                requestedBy shouldStartWith "testuser"
                 createdAt.shouldNotBeNull()
             }
 
@@ -234,7 +235,7 @@ class RequestRepositoryTests : BaseTest() {
                 shouldNotBeNull()
                 id shouldBe requestId
                 text shouldBe word
-                requestedBy shouldBe "testuser"
+                requestedBy shouldStartWith "testuser"
                 language shouldBe "german"
                 languageId shouldBe germanLanguageId
             }
@@ -299,7 +300,7 @@ class RequestRepositoryTests : BaseTest() {
                 text shouldBe word
                 language shouldBe "arabic"
                 languageId shouldBe arabicLanguageId
-                requestedBy shouldBe "testuser"
+                requestedBy shouldStartWith "testuser"
                 createdAt.shouldNotBeNull()
             }
         }
@@ -318,7 +319,7 @@ class RequestRepositoryTests : BaseTest() {
             result.totalCount shouldBe 3
             result.data.map { it.text }.shouldBe(words.reversed()) // DESC order
             result.data.forEach { request ->
-                request.requestedBy shouldBe "testuser"
+                request.requestedBy shouldStartWith "testuser"
                 request.language shouldBe "german"
             }
             result.data.map { it.id }.shouldContainAll(requestIds)
